@@ -312,3 +312,51 @@ canvas {
 .pulsing-text {
     animation: pulseGlow 4s infinite ease-in-out;
 }
+
+/* ==========================================================================
+   7. BOOST NOTIFICATIONS
+   ========================================================================== */
+.boost-notification-popup {
+    position: fixed;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 2000;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    animation: floatUpAndFade 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.boost-type {
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    letter-spacing: 2px;
+}
+
+.boost-level {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    opacity: 0.9;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    margin-top: 5px;
+}
+
+@keyframes floatUpAndFade {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 0%) scale(0.5);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -70%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -100%) scale(0.8);
+    }
+}
