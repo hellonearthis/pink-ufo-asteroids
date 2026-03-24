@@ -42,9 +42,9 @@ export class PrimaryGameLogicController {
     
     // COMBAT & WEAPON PROGRESSION:
     this.w_OnScreenLimit = 3;
-    this.w_ShotRange = 15.0;      // Starts short
+    this.w_ShotRange = 10.0;      // Starts very short
     this.w_ShotSpeed = 20.0;      // Starts very slow
-    this.w_ShotCooldown = 1000.0; // Starts very basic (1 pulse per sec)
+    this.w_ShotCooldown = 800.0;  // Starts basic (1.25 pulses per sec)
     
     this.currentWaveLevel = 0;
     this.lineageRegistry = new Map(); // Maps lineageId to active fragment count
@@ -378,9 +378,9 @@ export class PrimaryGameLogicController {
     
     // Reset Weapon Stats
     this.w_OnScreenLimit = 3;
-    this.w_ShotRange = 15.0;
+    this.w_ShotRange = 10.0;
     this.w_ShotSpeed = 20.0;
-    this.w_ShotCooldown = 1000.0;
+    this.w_ShotCooldown = 800.0;
     
     // Reset UI displays.
     document.getElementById('game-current-score-display').innerText = `Score: 0`;
