@@ -49,10 +49,30 @@
           </p>
         </div>
       </div>
+  <!-- 2. TACTICAL TUNING CONSOLE (Debug/Balance UI) -->
+  <div id="tactical-tuning-console" class="tuning-console-container">
+    <div class="tuning-console-header">TACTICAL TUNING CONSOLE <span class="tuning-toggle-hint">[T]</span></div>
+    <div class="tuning-category-group">
+      <div class="tuning-item">
+        <label>SHOT SPEED: <span id="v_val-speed">10</span></label>
+        <input type="range" id="tuning-shot-speed" min="5" max="100" value="10">
+      </div>
+      <div class="tuning-item">
+        <label>SHOT RANGE: <span id="v_val-range">5</span></label>
+        <input type="range" id="tuning-shot-range" min="1" max="100" value="5">
+      </div>
+      <div class="tuning-item">
+        <label>FIRE RATE (COOLDOWN): <span id="v_val-cooldown">800</span>ms</label>
+        <input type="range" id="tuning-shot-cooldown" min="50" max="2000" value="800">
+      </div>
+      <div class="tuning-item">
+        <label>MAX SHOTS: <span id="v_val-limit">3</span></label>
+        <input type="range" id="tuning-on-screen-limit" min="1" max="15" value="3">
+      </div>
     </div>
   </div>
 
-  <!-- 2. IN-GAME HUD (HEADS-UP DISPLAY) -->
+  <!-- 3. IN-GAME HUD (HEADS-UP DISPLAY) -->
   <div id="game-heads-up-display-overlay" class="game-ui-overlay-container" style="display: none;">
     <div id="game-current-stats-row" class="game-current-stats-row">
       <div id="game-current-score-display" class="game-current-score-display">Score: 0</div>

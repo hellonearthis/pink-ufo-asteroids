@@ -190,6 +190,70 @@ canvas {
 .highlight-text-cyan { color: #00ffff; font-weight: bold; }
 .highlight-text-pink { color: #ff00ff; font-weight: bold; }
 
+/* ==========================================================================
+   6. TACTICAL TUNING CONSOLE (DEBUG UI)
+   ========================================================================== */
+.tuning-console-container {
+    position: fixed;
+    top: 20px;
+    right: -320px; /* Hidden start */
+    width: 280px;
+    background: rgba(10, 10, 20, 0.95);
+    border: 1px solid #00ffff;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    padding: 15px;
+    z-index: 1000;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
+    transition: right 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.tuning-console-container.active {
+    right: 0;
+}
+
+.tuning-console-header {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #00ffff;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+}
+
+.tuning-toggle-hint {
+    color: #ff00ff;
+    opacity: 0.7;
+}
+
+.tuning-item {
+    margin-bottom: 15px;
+}
+
+.tuning-item label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.tuning-item label span {
+    color: #ff00ff;
+    font-weight: 800;
+}
+
+.tuning-item input[type="range"] {
+    width: 100%;
+    accent-color: #ff00ff;
+    cursor: pointer;
+}
+
 /* --- 4. HUD ELEMENTS --- */
 .game-current-stats-row {
     position: absolute;

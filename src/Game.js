@@ -4,6 +4,7 @@ import { ProjectileParticle } from './Bullet.js';
 import { CelestialHazardousAsteroid } from './Asteroid.js';
 import { KeyboardInputStateTracker } from './InputManager.js';
 import { BonusPickupElement } from './Bonus.js';
+import { TacticalBalanceUI } from './BalanceUI.js';
 
 /**
  * The core controller responsible for orchestrating the overall game logic,
@@ -42,8 +43,8 @@ export class PrimaryGameLogicController {
     
     // COMBAT & WEAPON PROGRESSION:
     this.w_OnScreenLimit = 3;
-    this.w_ShotRange = 10.0;      // Starts very short
-    this.w_ShotSpeed = 20.0;      // Starts very slow
+    this.w_ShotRange = 5.0;       // Halved (Starts near contact)
+    this.w_ShotSpeed = 10.0;      // Halved (Very slow)
     this.w_ShotCooldown = 800.0;  // Starts basic (1.25 pulses per sec)
     
     this.currentWaveLevel = 0;
@@ -59,6 +60,16 @@ export class PrimaryGameLogicController {
     ];
     this.persistentLocalStorageHighScore = parseInt(localStorage.getItem('pink-ufo-asteroids-high-score')) || 0;
     
+    // Initialize the real-time balance tuning UI.
+    this.balanceTuningUI = new TacticalBalanceUI(this);
+    
+    // Add a hotkey listener specifically for the Tuning Console.
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'KeyT') {
+            this.balanceTuningUI.toggle();
+        }
+    });
+
     // Update the splash screen statistics immediately upon initialization.
     this.synchronizeScoreStatisticsUI();
 
@@ -378,8 +389,8 @@ export class PrimaryGameLogicController {
     
     // Reset Weapon Stats
     this.w_OnScreenLimit = 3;
-    this.w_ShotRange = 10.0;
-    this.w_ShotSpeed = 20.0;
+    this.w_ShotRange = 5.0;
+    this.w_ShotSpeed = 10.0;
     this.w_ShotCooldown = 800.0;
     
     // Reset UI displays.
