@@ -526,6 +526,51 @@ export class PrimaryGameLogicController {
   }
 
   /**
+   * Displays a floating notification over the game area when a boost is collected.
+   */
+  showBoostNotification(type) {
+      const container = document.body;
+      const notification = document.createElement('div');
+      notification.className = 'boost-notification-popup';
+      
+      const level = this.w_StatsLevels[type] || 0;
+      let label = type;
+      if (type === 'CAPACITY') label = 'MAX SHOTS';
+      if (type === 'RATE') label = 'FIRE RATE';
+      
+      notification.innerHTML = `
+        <div class="boost-type" style="color: ${this.getBoostColor(type)}">${label} UP</div>
+        <div class="boost-level">LEVEL ${level}</div>
+      `;
+      
+      // Position center-ish but slightly randomized
+      const x = 50 + (Math.random() * 20 - 10);
+      const y = 40 + (Math.random() * 20 - 10);
+      notification.style.left = `${x}%`;
+      notification.style.top = `${y}%`;
+      
+      container.appendChild(notification);
+      
+      // Auto-remove after animation
+      setTimeout(() => {
+          notification.remove();
+      }, 2000);
+  }
+
+  /**
+   * Helper to get the CSS color for a boost type.
+   */
+  getBoostColor(type) {
+      const colors = {
+          'CAPACITY': '#ff0000',
+          'SPEED':    '#ffa500',
+          'RATE':     '#ffff00',
+          'RANGE':    '#ff69b4'
+      };
+      return colors[type] || '#ffffff';
+  }
+
+  /**
    * Transitions the game from the loading splash screen into the active mission.
    */
   beginActiveMission() {
