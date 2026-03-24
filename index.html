@@ -1,21 +1,71 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Asteroids 3D</title>
-    <link rel="stylesheet" href="/src/style.css" />
-  </head>
-  <body>
-    <div class="game-ui-overlay-container">
-      <div id="game-current-score-display" class="game-current-score-display">Score: 0</div>
-      <div id="game-over-notification-panel" class="game-over-notification-panel">
-        <h1 class="game-over-status-heading">GAME OVER</h1>
-        <p class="game-restart-action-instruction">Press R to Restart</p>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asteroids 3D</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body>
+  <!-- 1. CINEMATIC SPLASH SCREEN -->
+  <div id="game-loading-splash-screen" class="game-loading-splash-screen">
+    <div class="splash-screen-content-wrapper">
+      <h1 class="splash-screen-title-text pulsing-text">THE PINK UFO</h1>
+
+      <!-- NEW: SCORE STATISTICS DISPLAY -->
+      <div class="splash-screen-score-statistics">
+        <div class="stat-item">LAST MISSION: <span id="last-session-score-value">0</span></div>
+        <div class="stat-item">
+          PERSONAL BEST: <span id="persistent-high-score-value">0</span>
+          <button id="reset-high-score-button" class="mini-reset-button" title="Clear High Score">RESET</button>
+        </div>
+      </div>
+
+      <h2 class="splash-screen-subtitle-text">ASTEROID DEFENDER</h2>
+      <button id="begin-active-mission-button" class="premium-interactive-button">ENTER THE COSMOS</button>
+
+      <!-- NEW: HELP & INFO SECTION -->
+      <div class="splash-screen-info-grid">
+        <div class="info-panel-box">
+          <h3 class="info-panel-header">HOW TO PLAY</h3>
+          <ul class="info-panel-list">
+            <li><span class="key-cap-style">W</span> or <span class="key-cap-style">↑</span> : THRUST</li>
+            <li><span class="key-cap-style">A</span> <span class="key-cap-style">D</span> or <span
+                class="key-cap-style">←</span> <span class="key-cap-style">→</span> : ROTATE</li>
+            <li><span class="key-cap-style">SPACE</span> : DISCHARGE WEAPONS</li>
+            <li><span class="key-cap-style">R</span> : INSTANT RESTART</li>
+          </ul>
+        </div>
+        <div class="info-panel-box">
+          <h3 class="info-panel-header">ABOUT THE MISSION</h3>
+          <p class="info-panel-text">
+            A high-fidelity 3D tribute to the golden age of arcade gaming.
+            Built with <span class="highlight-text-cyan">Three.js</span> and <span
+              class="highlight-text-pink">Vite</span> as a tutorial-focused
+            demonstration of clean, modular game logic and cinematic rendering.
+          </p>
+        </div>
       </div>
     </div>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+  </div>
+
+  <!-- 2. IN-GAME HUD (HEADS-UP DISPLAY) -->
+  <div id="game-heads-up-display-overlay" class="game-ui-overlay-container" style="display: none;">
+    <div id="game-current-stats-row" class="game-current-stats-row">
+      <div id="game-current-score-display" class="game-current-score-display">Score: 0</div>
+      <div id="game-current-ammo-display" class="game-current-ammo-display">Max Shots: 3</div>
+    </div>
+    <div id="game-over-notification-panel" class="game-over-notification-panel">
+      <h1 class="game-over-status-heading">GAME OVER</h1>
+      <p id="game-over-timeout-info" class="game-restart-action-instruction">Returning to base in 5s...</p>
+      <p class="game-restart-action-instruction">Press R to Restart Now</p>
+    </div>
+  </div>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
 </html>

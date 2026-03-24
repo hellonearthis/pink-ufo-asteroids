@@ -38,9 +38,11 @@ export class ProjectileParticle {
     this.currentLinearVelocityVector = ejectionDirectionVector.clone().normalize().multiplyScalar(projectileTravelSpeedConstant);
     
     /**
-     * Remaining time (in seconds) that the bullet will exist before being automatically removed.
+     * Range Control: The total distance (in units) this bullet can travel 
+     * before automatically self-destructing.
      */
-    this.remainingLifespanInSeconds = 2.0; 
+    this.maxTravelDistance = 50.0; 
+    this.currentTravelDistance = 0;
     
     /**
      * A flag to indicate if this bullet is currently active in the game world.
@@ -60,14 +62,15 @@ export class ProjectileParticle {
   performFrameUpdate(timeDeltaInSeconds) {
     if (!this.isCurrentlyActiveAndValid) return;
     
-    // Position Update: Move the bullet forward based on its velocity.
-    this.projectileRenderingMesh.position.addScaledVector(this.currentLinearVelocityVector, timeDeltaInSeconds);
+    // Distance Tracking: Calculate the displacement for this frame.
+    const displacementThisFrame = this.currentLinearVelocityVector.clone().multiplyScalar(timeDeltaInSeconds);
+    this.projectileRenderingMesh.position.add(displacementThisFrame);
     
-    // Lifespan Logic: Subtract elapsed time.
-    this.remainingLifespanInSeconds -= timeDeltaInSeconds;
+    // Accumulate the total distance traveled.
+    this.currentTravelDistance += displacementThisFrame.length();
     
-    // Self-Destruction: If the lifespan reaches zero, the bullet 'dies'.
-    if (this.remainingLifespanInSeconds <= 0) {
+    // Range-Based Self-Destruction: If the bullet exceeds its maximum travel distance, it 'dies'.
+    if (this.currentTravelDistance >= this.maxTravelDistance) {
       this.initiateSelfDestructionSequence();
       return;
     }

@@ -11,11 +11,13 @@ export class CelestialHazardousAsteroid {
    * @param {Object} gameplayAreaBoundaryLimits - Limits used for edge spawning and wrapping.
    * @param {THREE.Vector3|null} specificSpawnCoordinate - If provided, the rock spawns here.
    * @param {number} relativeHazardSizeCategory - The scale of the hazard (3: Large, 2: Med, 1: Small).
+   * @param {number} asteroidColor - The hex color of the asteroid.
    */
-  constructor(parentGameRenderingScene, gameplayAreaBoundaryLimits, specificSpawnCoordinate = null, relativeHazardSizeCategory = 3) {
+  constructor(parentGameRenderingScene, gameplayAreaBoundaryLimits, specificSpawnCoordinate = null, relativeHazardSizeCategory = 3, asteroidColor = 0x888888) {
     this.parentGameRenderingScene = parentGameRenderingScene;
     this.gameplayAreaBoundaryLimits = gameplayAreaBoundaryLimits;
     this.relativeHazardSizeCategory = relativeHazardSizeCategory;
+    this.asteroidColor = asteroidColor;
     
     /**
      * The physical size based on its category.
@@ -46,7 +48,7 @@ export class CelestialHazardousAsteroid {
     asteroidVisualGeometry.computeVertexNormals();
 
     const asteroidVisualMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x888888,   // A grey stone-like color
+      color: this.asteroidColor,   
       roughness: 0.8,    // Very little reflectivity
       flatShading: true  // Sharp edges to mimic a jagged rock
     });
