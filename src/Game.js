@@ -76,6 +76,11 @@ export class PrimaryGameLogicController {
         if (e.code === 'KeyT') {
             this.balanceTuningUI.toggle();
         }
+        
+        // NEW: Space to start mission from splash screen.
+        if (e.code === 'Space' && this.isCurrentlyInSplashScreenMode) {
+            this.beginActiveMission();
+        }
     });
 
     // Update the splash screen statistics immediately upon initialization.
