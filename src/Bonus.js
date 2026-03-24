@@ -12,17 +12,27 @@ export class BonusPickupElement {
    * @param {number} identifyingColor - The hex color associated with the bonus.
    * @param {string} rewardType - The type of reward (e.g., 'AMMO', 'POINTS').
    */
-  constructor(parentGameRenderingScene, spawnCoordinate, identifyingColor, rewardType = 'AMMO') {
+  constructor(parentGameRenderingScene, spawnCoordinate, identifyingColor, rewardType = 'CAPACITY') {
     this.parentGameRenderingScene = parentGameRenderingScene;
-    this.identifyingColor = identifyingColor;
     this.rewardType = rewardType;
     
+    // COLOR MAPPING based on Reward Type:
+    const rewardColorMap = {
+        'CAPACITY': 0xff0000, // Red
+        'SPEED':    0xffa500, // Orange
+        'RATE':     0xffff00, // Yellow
+        'RANGE':    0xff69b4, // Pink
+        'POINTS':   0x00ff00  // Green (Fallthrough)
+    };
+    
+    this.identifyingColor = rewardColorMap[rewardType] || identifyingColor;
+
     // 1. THE MAIN PICKUP VISUAL (Glowing Gem)
     const gemGeometry = new THREE.IcosahedronGeometry(1.0, 0);
     const gemMaterial = new THREE.MeshStandardMaterial({
-      color: identifyingColor,
-      emissive: identifyingColor,
-      emissiveIntensity: 0.8,
+      color: this.identifyingColor,
+      emissive: this.identifyingColor,
+      emissiveIntensity: 1.5, // Increased for a vibrant neon glow
       metalness: 0.9,
       roughness: 0.1,
       transparent: true,
@@ -64,10 +74,14 @@ export class BonusPickupElement {
     this.accumulatedRotationTime += timeDeltaInSeconds;
     this.remainingLifespanDuration -= timeDeltaInSeconds;
     
-    // 1. ANIMATION: Spin and float
+    // 1. ANIMATION: Spin, float, and Pulse
     this.gemMesh.rotation.y += timeDeltaInSeconds * 2.0;
     this.gemMesh.rotation.x += timeDeltaInSeconds * 1.5;
     this.gemMesh.position.z = Math.sin(this.accumulatedRotationTime * 4) * 0.3;
+    
+    // Pulsing Scale Effect
+    const pulseFactor = 1.0 + Math.sin(this.accumulatedRotationTime * 6) * 0.15;
+    this.gemMesh.scale.set(pulseFactor, pulseFactor, pulseFactor);
     
     // 2. TIMER BAR LOGIC: Update foreground scale
     const lifespanPercentageRemaining = Math.max(0, this.remainingLifespanDuration / this.maximumLifespanDuration);

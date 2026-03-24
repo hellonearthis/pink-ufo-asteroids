@@ -285,8 +285,8 @@ export class PrimaryGameLogicController {
         const distanceToPlayer = this.playerSpacecraft.spacecraftRenderingMesh.position.distanceTo(bonus.gemMesh.position);
         
         if (distanceToPlayer < this.playerSpacecraft.physicalCollisionRadius + bonus.physicalCollisionRadius) {
-            // Weapon Upgrade
-            this.upgradeWeaponSystem(bonus.rewardType === 'MEGA_AMMO');
+            // Specialized Weapon Upgrade
+            this.upgradeWeaponSystem(bonus.rewardType);
             
             if (bonus.rewardType === 'POINTS') {
                 this.currentTotalPlayerScore += 2000;
@@ -346,14 +346,24 @@ export class PrimaryGameLogicController {
 
     // CHECK FOR FAMILY WIPE (Lineage):
     if (this.lineageRegistry.get(linId) === 0) {
-        let rewardType = 'AMMO';
-        if (parentColor === 0xbf00ff) rewardType = 'MEGA_AMMO'; // Purple gives mega capacity
-        if (parentColor === 0xffff00) rewardType = 'POINTS';    // Yellow gives points
+        // High-value Family Wipe reward
+        const familyWipeTypes = ['CAPACITY', 'POINTS'];
+        const type = familyWipeTypes[Math.floor(Math.random() * familyWipeTypes.length)];
         
         this.currentlyActiveBonuses.push(
-            new BonusPickupElement(this.primaryRenderingScene, originalDecompositionSourceCoordinate.clone(), parentColor, rewardType)
+            new BonusPickupElement(this.primaryRenderingScene, originalDecompositionSourceCoordinate.clone(), parentColor, type)
         );
-        this.lineageRegistry.delete(linId); // Clean up registry.
+        this.lineageRegistry.delete(linId);
+    } else {
+        // RANDOM DROP CHANCE: 25% on any asteroid death.
+        if (Math.random() < 0.25) {
+            const dropTypes = ['CAPACITY', 'SPEED', 'RATE', 'RANGE'];
+            const randomType = dropTypes[Math.floor(Math.random() * dropTypes.length)];
+            
+            this.currentlyActiveBonuses.push(
+                new BonusPickupElement(this.primaryRenderingScene, originalDecompositionSourceCoordinate.clone(), 0xffffff, randomType)
+            );
+        }
     }
   }
   
@@ -457,31 +467,53 @@ export class PrimaryGameLogicController {
   }
 
   /**
-   * Upgrades the weapon system stats.
+   * Upgrades the weapon system stats based on the collected boost type.
+   * @param {string} rewardType - The specific attribute to upgrade.
    */
-  upgradeWeaponSystem(isMega = false) {
-      const multiplier = isMega ? 2 : 1;
+  upgradeWeaponSystem(rewardType) {
+      const multiplier = 1;
       
-      // 1. Capacity (Max 6)
-      if (this.w_OnScreenLimit < 6) {
-          this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 1 * multiplier);
+      switch(rewardType) {
+          case 'CAPACITY':
+              // 1. Capacity (Max 6)
+              if (this.w_OnScreenLimit < 6) {
+                  this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 1 * multiplier);
+              }
+              break;
+              
+          case 'RANGE':
+              // 2. Range (Max 50% screen width)
+              const screenWidth = this.gameplayAreaBoundaryLimits.right - this.gameplayAreaBoundaryLimits.left;
+              const maxRange = screenWidth * 0.5;
+              if (this.w_ShotRange < maxRange) {
+                  this.w_ShotRange = Math.min(maxRange, this.w_ShotRange + 8 * multiplier);
+              }
+              break;
+              
+          case 'SPEED':
+              // 3. Speed (Max 80)
+              if (this.w_ShotSpeed < 80) {
+                  this.w_ShotSpeed = Math.min(80, this.w_ShotSpeed + 10 * multiplier);
+              }
+              break;
+              
+          case 'RATE':
+              // 4. Cooldown (Min 100ms)
+              if (this.w_ShotCooldown > 100) {
+                  this.w_ShotCooldown = Math.max(100, this.w_ShotCooldown - 60 * multiplier);
+              }
+              break;
+
+          case 'MEGA_AMMO':
+              // Fallback for old/special mega-boost (multi-stat)
+              this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 2);
+              this.w_ShotSpeed = Math.min(80, this.w_ShotSpeed + 10);
+              break;
       }
       
-      // 2. Range (Max 50% screen width)
-      const screenWidth = this.gameplayAreaBoundaryLimits.right - this.gameplayAreaBoundaryLimits.left;
-      const maxRange = screenWidth * 0.5;
-      if (this.w_ShotRange < maxRange) {
-          this.w_ShotRange = Math.min(maxRange, this.w_ShotRange + 5 * multiplier);
-      }
-      
-      // 3. Speed (Max 70)
-      if (this.w_ShotSpeed < 70) {
-          this.w_ShotSpeed = Math.min(70, this.w_ShotSpeed + 5 * multiplier);
-      }
-      
-      // 4. Cooldown (Min 100ms)
-      if (this.w_ShotCooldown > 100) {
-          this.w_ShotCooldown = Math.max(100, this.w_ShotCooldown - 40 * multiplier);
+      // Update the Balance UI to reflect the new state.
+      if (this.balanceTuningUI) {
+          this.balanceTuningUI.synchronizeUIFromGameState();
       }
   }
 
