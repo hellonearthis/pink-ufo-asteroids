@@ -47,6 +47,14 @@ export class PrimaryGameLogicController {
     this.w_ShotSpeed = 10.0;      // Halved (Very slow)
     this.w_ShotCooldown = 800.0;  // Starts basic (1.25 pulses per sec)
     
+    // Track Levels for each stat (0 = starting)
+    this.w_StatsLevels = {
+        'CAPACITY': 0,
+        'SPEED':    0,
+        'RATE':     0,
+        'RANGE':    0
+    };
+    
     this.currentWaveLevel = 0;
     this.lineageRegistry = new Map(); // Maps lineageId to active fragment count
     this.lastSessionEndingScore = 0;
@@ -397,7 +405,8 @@ export class PrimaryGameLogicController {
     this.currentTotalPlayerScore = 0;
     this.currentWaveLevel = 0;
     
-    // Reset Weapon Stats
+    // Reset Weapon Stats & Levels
+    this.w_StatsLevels = { CAPACITY: 0, SPEED: 0, RATE: 0, RANGE: 0 };
     this.w_OnScreenLimit = 3;
     this.w_ShotRange = 5.0;
     this.w_ShotSpeed = 10.0;
@@ -471,45 +480,44 @@ export class PrimaryGameLogicController {
    * @param {string} rewardType - The specific attribute to upgrade.
    */
   upgradeWeaponSystem(rewardType) {
-      const multiplier = 1;
-      
+      if (!this.w_StatsLevels[rewardType] && rewardType !== 'MEGA_AMMO') {
+          this.w_StatsLevels[rewardType] = 0;
+      }
+
       switch(rewardType) {
           case 'CAPACITY':
-              // 1. Capacity (Max 6)
               if (this.w_OnScreenLimit < 6) {
-                  this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 1 * multiplier);
+                  this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 1);
+                  this.w_StatsLevels['CAPACITY']++;
               }
               break;
               
           case 'RANGE':
-              // 2. Range (Max 50% screen width)
               const screenWidth = this.gameplayAreaBoundaryLimits.right - this.gameplayAreaBoundaryLimits.left;
               const maxRange = screenWidth * 0.5;
               if (this.w_ShotRange < maxRange) {
-                  this.w_ShotRange = Math.min(maxRange, this.w_ShotRange + 8 * multiplier);
+                  this.w_ShotRange = Math.min(maxRange, this.w_ShotRange + 8);
+                  this.w_StatsLevels['RANGE']++;
               }
               break;
               
           case 'SPEED':
-              // 3. Speed (Max 80)
               if (this.w_ShotSpeed < 80) {
-                  this.w_ShotSpeed = Math.min(80, this.w_ShotSpeed + 10 * multiplier);
+                  this.w_ShotSpeed = Math.min(80, this.w_ShotSpeed + 10);
+                  this.w_StatsLevels['SPEED']++;
               }
               break;
               
           case 'RATE':
-              // 4. Cooldown (Min 100ms)
               if (this.w_ShotCooldown > 100) {
-                  this.w_ShotCooldown = Math.max(100, this.w_ShotCooldown - 60 * multiplier);
+                  this.w_ShotCooldown = Math.max(100, this.w_ShotCooldown - 60);
+                  this.w_StatsLevels['RATE']++;
               }
               break;
-
-          case 'MEGA_AMMO':
-              // Fallback for old/special mega-boost (multi-stat)
-              this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 2);
-              this.w_ShotSpeed = Math.min(80, this.w_ShotSpeed + 10);
-              break;
       }
+      
+      // Show Visual Notification
+      this.showBoostNotification(rewardType);
       
       // Update the Balance UI to reflect the new state.
       if (this.balanceTuningUI) {
