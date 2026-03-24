@@ -40,13 +40,19 @@ export class PrimaryGameLogicController {
     this.gameOverTimeoutRemainingSeconds = 5.0;
     this.timestampOfLastDischargedProjectile = 0;
     
-    // COMBAT & WEAPON LIMITS:
-    this.maxOnScreenShotLimit = 3;
+    // COMBAT & WEAPON PROGRESSION:
+    this.w_OnScreenLimit = 3;
+    this.w_ShotRange = 15.0;      // Starts short
+    this.w_ShotSpeed = 30.0;      // Starts slow
+    this.w_ShotCooldown = 400.0;  // Starts slow (ms)
+    
+    this.currentWaveLevel = 0;
+    this.lineageRegistry = new Map(); // Maps lineageId to active fragment count
     this.lastSessionEndingScore = 0;
     
     // COLOR-CODED ASTEROID SYSTEM:
     this.asteroidColorPalette = [
-        0xff00ff, // Pink
+        0xbf00ff, // Purple
         0x00ffff, // Cyan
         0xffff00, // Yellow
         0x00ff00  // Green
@@ -141,11 +147,9 @@ export class PrimaryGameLogicController {
     // Check if the Spacebar is pressed and if we have ammo.
     if (this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed('Space')) {
       const currentHighResolutionTimestamp = performance.now();
-      const projectileCooldownDurationInMilliseconds = 250;
-      
-      const hasAvailableShotCapacity = this.currentlyActiveProjectiles.length < this.maxOnScreenShotLimit;
+      const hasAvailableShotCapacity = this.currentlyActiveProjectiles.length < this.w_OnScreenLimit;
 
-      if (hasAvailableShotCapacity && currentHighResolutionTimestamp - this.timestampOfLastDischargedProjectile > projectileCooldownDurationInMilliseconds) {
+      if (hasAvailableShotCapacity && currentHighResolutionTimestamp - this.timestampOfLastDischargedProjectile > this.w_ShotCooldown) {
         this.timestampOfLastDischargedProjectile = currentHighResolutionTimestamp;
         this.dischargeSpacecraftProjectile();
       }
@@ -217,7 +221,7 @@ export class PrimaryGameLogicController {
    updateAmmunitionHUDDisplay() {
      const ammoElem = document.getElementById('game-current-ammo-display');
      if (ammoElem) {
-         ammoElem.innerText = `Max Shots: ${this.maxOnScreenShotLimit}`;
+         ammoElem.innerText = `Firepower Level: ${this.w_OnScreenLimit - 2} | Cap: ${this.w_OnScreenLimit}/6`;
      }
    }
   
@@ -238,10 +242,14 @@ export class PrimaryGameLogicController {
         
         // Collision occurs if the distance is less than the sum of their physical radii.
         if (euclideanDistanceBetweenEntities < activeProjectile.physicalCollisionRadius + candidateAsteroid.physicalCollisionRadius) {
-          // Both the projectile and the asteroid sub-units are decomposed upon impact.
           activeProjectile.initiateSelfDestructionSequence();
-          this.executeAsteroidDecompositionAndSplitting(candidateAsteroid);
-          break; // Projectile is spent, move to next pulse.
+          
+          // Apply damage and only decompose if health hits zero.
+          const isAsteroidDestroyed = candidateAsteroid.takeDamage();
+          if (isAsteroidDestroyed) {
+              this.executeAsteroidDecompositionAndSplitting(candidateAsteroid);
+          }
+          break; // Projectile is spent.
         }
       }
     }
@@ -266,13 +274,11 @@ export class PrimaryGameLogicController {
         const distanceToPlayer = this.playerSpacecraft.spacecraftRenderingMesh.position.distanceTo(bonus.gemMesh.position);
         
         if (distanceToPlayer < this.playerSpacecraft.physicalCollisionRadius + bonus.physicalCollisionRadius) {
-            // Apply Varied Rewards based on Type (Increasing the Weapon Limit)
-            if (bonus.rewardType === 'AMMO') {
-                this.maxOnScreenShotLimit++;
-            } else if (bonus.rewardType === 'MEGA_AMMO') {
-                this.maxOnScreenShotLimit += 2;
-            } else if (bonus.rewardType === 'POINTS') {
-                this.currentTotalPlayerScore += 1000;
+            // Weapon Upgrade
+            this.upgradeWeaponSystem(bonus.rewardType === 'MEGA_AMMO');
+            
+            if (bonus.rewardType === 'POINTS') {
+                this.currentTotalPlayerScore += 2000;
                 document.getElementById('game-current-score-display').innerText = `Score: ${this.currentTotalPlayerScore}`;
             }
             
@@ -284,13 +290,8 @@ export class PrimaryGameLogicController {
     // 4. GENERATION CHECK:
     // If all hazards are cleared, we automatically spawn another wave.
     if (this.currentlyActiveAsteroids.length === 0) {
-        const nextLevelAsteroidQuantity = 7;
-        for(let i = 0; i < nextLevelAsteroidQuantity; i++) {
-            const randomColor = this.asteroidColorPalette[Math.floor(Math.random() * this.asteroidColorPalette.length)];
-            this.currentlyActiveAsteroids.push(
-                new CelestialHazardousAsteroid(this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, null, 3, randomColor)
-            );
-        }
+        this.currentWaveLevel++;
+        this.spawnInitialHazardWave();
     }
   }
   
@@ -313,30 +314,35 @@ export class PrimaryGameLogicController {
     
     const parentColor = asteroidToDecompose.asteroidColor;
 
+    // DECREMENT LINEAGE COUNT:
+    const linId = asteroidToDecompose.lineageId;
+    const currentCount = this.lineageRegistry.get(linId) || 1;
+    this.lineageRegistry.set(linId, currentCount - 1);
+
     // If the asteroid wasn't already the smallest possible size, spawn two children.
     if (childAsteroidSizeCategoryValue > 0) {
-      this.currentlyActiveAsteroids.push(new CelestialHazardousAsteroid(this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, originalDecompositionSourceCoordinate.clone(), childAsteroidSizeCategoryValue, parentColor));
-      this.currentlyActiveAsteroids.push(new CelestialHazardousAsteroid(this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, originalDecompositionSourceCoordinate.clone(), childAsteroidSizeCategoryValue, parentColor));
+      const childHealth = this.calculateAsteroidHealth(this.currentWaveLevel, childAsteroidSizeCategoryValue);
+      
+      const childA = new CelestialHazardousAsteroid(this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, originalDecompositionSourceCoordinate.clone(), childAsteroidSizeCategoryValue, parentColor, childHealth, linId);
+      const childB = new CelestialHazardousAsteroid(this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, originalDecompositionSourceCoordinate.clone(), childAsteroidSizeCategoryValue, parentColor, childHealth, linId);
+      
+      this.currentlyActiveAsteroids.push(childA);
+      this.currentlyActiveAsteroids.push(childB);
+      
+      // Update lineage count: we replaced 1 parent with 2 children.
+      this.lineageRegistry.set(linId, this.lineageRegistry.get(linId) + 2);
     }
 
-    // CHECK FOR COLOR WIPE:
-    // If no more asteroids of this color remain anywhere on the field, spawn a high-value bonus.
-    const remainingOfSameColor = this.currentlyActiveAsteroids.filter(a => a.asteroidColor === parentColor && a.isCurrentlyActiveAndValid).length;
-    if (remainingOfSameColor === 0) {
+    // CHECK FOR FAMILY WIPE (Lineage):
+    if (this.lineageRegistry.get(linId) === 0) {
         let rewardType = 'AMMO';
-        if (parentColor === 0xff00ff) rewardType = 'MEGA_AMMO'; // Pink gives mega ammo
+        if (parentColor === 0xbf00ff) rewardType = 'MEGA_AMMO'; // Purple gives mega capacity
         if (parentColor === 0xffff00) rewardType = 'POINTS';    // Yellow gives points
         
         this.currentlyActiveBonuses.push(
             new BonusPickupElement(this.primaryRenderingScene, originalDecompositionSourceCoordinate.clone(), parentColor, rewardType)
         );
-    } else {
-        // RANDOM DROP CHANCE: 15% on any asteroid death if not a full color wipe.
-        if (Math.random() < 0.15) {
-            this.currentlyActiveBonuses.push(
-                new BonusPickupElement(this.primaryRenderingScene, originalDecompositionSourceCoordinate.clone(), 0xffffff, 'AMMO')
-            );
-        }
+        this.lineageRegistry.delete(linId); // Clean up registry.
     }
   }
   
@@ -368,7 +374,13 @@ export class PrimaryGameLogicController {
   initiateGameSessionRestart() {
     this.isGameCurrentlyInGameOverState = false;
     this.currentTotalPlayerScore = 0;
-    this.maxOnScreenShotLimit = 3;
+    this.currentWaveLevel = 0;
+    
+    // Reset Weapon Stats
+    this.w_OnScreenLimit = 3;
+    this.w_ShotRange = 15.0;
+    this.w_ShotSpeed = 30.0;
+    this.w_ShotCooldown = 400.0;
     
     // Reset UI displays.
     document.getElementById('game-current-score-display').innerText = `Score: 0`;
@@ -408,13 +420,58 @@ export class PrimaryGameLogicController {
    * Spawns the initial wave of asteroids.
    */
   spawnInitialHazardWave() {
-    const initialAsteroidQuantity = 5;
-    for(let i = 0; i < initialAsteroidQuantity; i++) {
-        const randomColor = this.asteroidColorPalette[Math.floor(Math.random() * this.asteroidColorPalette.length)];
-        this.currentlyActiveAsteroids.push(
-            new CelestialHazardousAsteroid(this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, null, 3, randomColor)
-        );
+    this.lineageRegistry.clear();
+    const initialWaveAsteroidQuantity = 5 + Math.min(this.currentWaveLevel, 5);
+    
+    for (let i = 0; i < initialWaveAsteroidQuantity; i++) {
+      const randomColor = this.asteroidColorPalette[Math.floor(Math.random() * this.asteroidColorPalette.length)];
+      const health = this.calculateAsteroidHealth(this.currentWaveLevel, 3);
+      
+      const asteroid = new CelestialHazardousAsteroid(this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, null, 3, randomColor, health);
+      this.currentlyActiveAsteroids.push(asteroid);
+      
+      // Initialize lineage count: Total parts for a size 3 is 1(B) + 2(M) + 4(S) = 7
+      this.lineageRegistry.set(asteroid.lineageId, 1); 
     }
+  }
+
+  /**
+   * Helper to calculate asteroid hits required based on wave and size.
+   */
+  calculateAsteroidHealth(wave, size) {
+      if (size === 3) return 1 + Math.floor((wave + 2) / 3);
+      if (size === 2) return 1 + Math.floor((wave + 1) / 3);
+      if (size === 1) return 1 + Math.floor(wave / 3);
+      return 1;
+  }
+
+  /**
+   * Upgrades the weapon system stats.
+   */
+  upgradeWeaponSystem(isMega = false) {
+      const multiplier = isMega ? 2 : 1;
+      
+      // 1. Capacity (Max 6)
+      if (this.w_OnScreenLimit < 6) {
+          this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 1 * multiplier);
+      }
+      
+      // 2. Range (Max 50% screen width)
+      const screenWidth = this.gameplayAreaBoundaryLimits.right - this.gameplayAreaBoundaryLimits.left;
+      const maxRange = screenWidth * 0.5;
+      if (this.w_ShotRange < maxRange) {
+          this.w_ShotRange = Math.min(maxRange, this.w_ShotRange + 5 * multiplier);
+      }
+      
+      // 3. Speed (Max 70)
+      if (this.w_ShotSpeed < 70) {
+          this.w_ShotSpeed = Math.min(70, this.w_ShotSpeed + 5 * multiplier);
+      }
+      
+      // 4. Cooldown (Min 100ms)
+      if (this.w_ShotCooldown > 100) {
+          this.w_ShotCooldown = Math.max(100, this.w_ShotCooldown - 40 * multiplier);
+      }
   }
 
   /**

@@ -12,18 +12,31 @@ export class ProjectileParticle {
    * @param {THREE.Vector3} initialStartingPosition - The exact coordinate where the bullet is born.
    * @param {THREE.Vector3} ejectionDirectionVector - The normalized direction the bullet travels.
    * @param {Object} gameplayAreaBoundaryLimits - The rectangular boundaries for screen wrapping.
+   * @param {number} travelSpeed - The velocity magnitude (units per second).
+   * @param {number} maxRange - The maximum distance (units) before self-destruction.
    */
-  constructor(parentGameRenderingScene, initialStartingPosition, ejectionDirectionVector, gameplayAreaBoundaryLimits) {
+  constructor(parentGameRenderingScene, initialStartingPosition, ejectionDirectionVector, gameplayAreaBoundaryLimits, travelSpeed = 40.0, maxRange = 50.0) {
     this.parentGameRenderingScene = parentGameRenderingScene;
     this.gameplayAreaBoundaryLimits = gameplayAreaBoundaryLimits;
     
     /**
-     * The visual representation of the bullet is a small yellow sphere.
+     * The visual representation of the bullet is a light pink "bean-shaped" chip.
+     * We use a low number of segments and flatShading to give it more definition.
      */
-    const projectileVisualGeometry = new THREE.SphereGeometry(0.3, 8, 8);
-    const projectileVisualMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    const projectileVisualGeometry = new THREE.CapsuleGeometry(0.3, 0.6, 2, 6);
+    const projectileVisualMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xffb6c1, 
+        emissive: 0xff69b4,
+        emissiveIntensity: 0.4,
+        roughness: 0.1,    // Low roughness for sharp specular highlights
+        metalness: 0.7,    // High metalness for a premium surface feel
+        flatShading: true  // Faceted look for maximum definition
+    });
     
     this.projectileRenderingMesh = new THREE.Mesh(projectileVisualGeometry, projectileVisualMaterial);
+    
+    // Randomize initial rotation for variety.
+    this.projectileRenderingMesh.rotation.set(Math.random() * 5, Math.random() * 5, Math.random() * 5);
     
     // Copy the starting position from the player's tip.
     this.projectileRenderingMesh.position.copy(initialStartingPosition);
@@ -32,16 +45,25 @@ export class ProjectileParticle {
     this.parentGameRenderingScene.add(this.projectileRenderingMesh);
     
     /**
-     * The flight velocity is based on the ejection direction, scaled by a speed constant.
+     * TUMBLING LOGIC: 
+     * Random rotation speed across all three axes to create a natural 3D tumble.
      */
-    const projectileTravelSpeedConstant = 40.0;
-    this.currentLinearVelocityVector = ejectionDirectionVector.clone().normalize().multiplyScalar(projectileTravelSpeedConstant);
+    this.internalTumblingRotationVelocity = new THREE.Vector3(
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5
+    );
+
+    /**
+     * The flight velocity is based on the ejection direction, scaled by the dynamic speed parameter.
+     */
+    this.currentLinearVelocityVector = ejectionDirectionVector.clone().normalize().multiplyScalar(travelSpeed);
     
     /**
      * Range Control: The total distance (in units) this bullet can travel 
      * before automatically self-destructing.
      */
-    this.maxTravelDistance = 50.0; 
+    this.maxTravelDistance = maxRange; 
     this.currentTravelDistance = 0;
     
     /**
@@ -52,7 +74,7 @@ export class ProjectileParticle {
     /**
      * The collision radius for detecting hits on asteroids.
      */
-    this.physicalCollisionRadius = 0.3;
+    this.physicalCollisionRadius = 0.5;
   }
   
   /**
@@ -62,6 +84,11 @@ export class ProjectileParticle {
   performFrameUpdate(timeDeltaInSeconds) {
     if (!this.isCurrentlyActiveAndValid) return;
     
+    // Apply Tumbling Rotation
+    this.projectileRenderingMesh.rotation.x += this.internalTumblingRotationVelocity.x * timeDeltaInSeconds;
+    this.projectileRenderingMesh.rotation.y += this.internalTumblingRotationVelocity.y * timeDeltaInSeconds;
+    this.projectileRenderingMesh.rotation.z += this.internalTumblingRotationVelocity.z * timeDeltaInSeconds;
+
     // Distance Tracking: Calculate the displacement for this frame.
     const displacementThisFrame = this.currentLinearVelocityVector.clone().multiplyScalar(timeDeltaInSeconds);
     this.projectileRenderingMesh.position.add(displacementThisFrame);

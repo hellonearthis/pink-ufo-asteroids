@@ -12,12 +12,18 @@ export class CelestialHazardousAsteroid {
    * @param {THREE.Vector3|null} specificSpawnCoordinate - If provided, the rock spawns here.
    * @param {number} relativeHazardSizeCategory - The scale of the hazard (3: Large, 2: Med, 1: Small).
    * @param {number} asteroidColor - The hex color of the asteroid.
+   * @param {number} asteroidHealth - The number of hits this rock can sustain.
+   * @param {string} lineageId - Tracking ID for the original parent's family tree.
    */
-  constructor(parentGameRenderingScene, gameplayAreaBoundaryLimits, specificSpawnCoordinate = null, relativeHazardSizeCategory = 3, asteroidColor = 0x888888) {
+  constructor(parentGameRenderingScene, gameplayAreaBoundaryLimits, specificSpawnCoordinate = null, relativeHazardSizeCategory = 3, asteroidColor = 0x888888, asteroidHealth = 1, lineageId = "") {
     this.parentGameRenderingScene = parentGameRenderingScene;
     this.gameplayAreaBoundaryLimits = gameplayAreaBoundaryLimits;
     this.relativeHazardSizeCategory = relativeHazardSizeCategory;
     this.asteroidColor = asteroidColor;
+    this.maxHealth = asteroidHealth;
+    this.currentHealth = asteroidHealth;
+    this.lineageId = lineageId || `lin_${Math.random().toString(36).substr(2, 9)}`;
+    this.hitFlashTimer = 0;
     
     /**
      * The physical size based on its category.
@@ -108,6 +114,14 @@ export class CelestialHazardousAsteroid {
   performFrameUpdate(timeDeltaInSeconds) {
     if (!this.isCurrentlyActiveAndValid) return;
     
+    // VISUAL FEEDBACK: Hit Flash
+    if (this.hitFlashTimer > 0) {
+        this.hitFlashTimer -= timeDeltaInSeconds;
+        if (this.hitFlashTimer <= 0) {
+            this.asteroidRenderingMesh.material.emissive.setHex(0x000000);
+        }
+    }
+
     this.asteroidRenderingMesh.position.addScaledVector(this.currentLinearVelocityVector, timeDeltaInSeconds);
     
     // Apply the tumbling rotation.
@@ -134,6 +148,19 @@ export class CelestialHazardousAsteroid {
     }
   }
   
+  /**
+   * Applies damage to the asteroid.
+   */
+  takeDamage() {
+    this.currentHealth--;
+    
+    // Trigger visual flash
+    this.hitFlashTimer = 0.1; 
+    this.asteroidRenderingMesh.material.emissive.setHex(0xffffff);
+    
+    return this.currentHealth <= 0;
+  }
+
   /**
    * Removes the asteroid from existence.
    */
