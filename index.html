@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asteroids 3D</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div class="game-ui-overlay-container">
+      <div id="game-current-score-display" class="game-current-score-display">Score: 0</div>
+      <div id="game-over-notification-panel" class="game-over-notification-panel">
+        <h1 class="game-over-status-heading">GAME OVER</h1>
+        <p class="game-restart-action-instruction">Press R to Restart</p>
+      </div>
+    </div>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

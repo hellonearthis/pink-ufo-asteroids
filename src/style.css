@@ -1,0 +1,58 @@
+/* Full-screen reset for the game application */
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #000;
+}
+
+/* Ensure the Three.js canvas fills the screen appropriately */
+canvas {
+  display: block;
+}
+
+/* Layer for all user interface elements that sit on top of the 3D scene */
+.game-ui-overlay-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  color: white;
+  font-family: 'Courier New', Courier, monospace;
+  z-index: 10;
+}
+
+/* Display for the player's current score in the top-left corner */
+.game-current-score-display {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Modal-style overlay centered on the screen when the game is over */
+.game-over-notification-panel {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+/* Large, prominent heading for the game over message */
+.game-over-status-heading {
+  font-size: 48px;
+  color: #ff3333;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+}
+
+/* Instruction text telling the player how to restart the game session */
+.game-restart-action-instruction {
+  font-size: 20px;
+  opacity: 0.8;
+}
