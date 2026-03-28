@@ -42,10 +42,10 @@ export class PrimaryGameLogicController {
     this.timestampOfLastDischargedProjectile = 0;
     
     // COMBAT & WEAPON PROGRESSION:
-    this.w_OnScreenLimit = 3;
-    this.w_ShotRange = 5.0;       // Halved (Starts near contact)
-    this.w_ShotSpeed = 10.0;      // Halved (Very slow)
-    this.w_ShotCooldown = 800.0;  // Starts basic (1.25 pulses per sec)
+    this.w_OnScreenLimit = 1;
+    this.w_ShotRange = 18.0;      // Starts moderately close
+    this.w_ShotSpeed = 16.0;      // Starts moderately slow
+    this.w_ShotCooldown = 900.0;  // Starts basic (1.1 pulses per sec)
     
     // Track Levels for each stat (0 = starting)
     this.w_StatsLevels = {
@@ -231,7 +231,10 @@ export class PrimaryGameLogicController {
         this.primaryRenderingScene, 
         projectileSpawnLocationCoordinate, 
         forwardDirectionUnitVector, 
-        this.gameplayAreaBoundaryLimits
+        this.gameplayAreaBoundaryLimits,
+        this.w_ShotSpeed,
+        this.w_ShotRange,
+        this.playerSpacecraft.currentLinearVelocityVector
      );
      this.currentlyActiveProjectiles.push(newlyCreatedProjectile);
  
@@ -239,13 +242,14 @@ export class PrimaryGameLogicController {
      this.updateAmmunitionHUDDisplay();
    }
  
-   /**
-    * Refreshes the Weapon Capacity display on the HUD.
-    */
    updateAmmunitionHUDDisplay() {
      const ammoElem = document.getElementById('game-current-ammo-display');
      if (ammoElem) {
-         ammoElem.innerText = `Firepower Level: ${this.w_OnScreenLimit - 2} | Cap: ${this.w_OnScreenLimit}/6`;
+         const limit = this.w_OnScreenLimit;
+         const rate = Math.round(900 - this.w_ShotCooldown) + 1;
+         const speed = Math.round(this.w_ShotSpeed);
+         const range = Math.round(this.w_ShotRange);
+         ammoElem.innerText = `Shots: ${limit} | Shot Rate: ${rate} | Shot Velocity: ${speed} | Shot Range: ${range}`;
      }
    }
   
@@ -412,10 +416,10 @@ export class PrimaryGameLogicController {
     
     // Reset Weapon Stats & Levels
     this.w_StatsLevels = { CAPACITY: 0, SPEED: 0, RATE: 0, RANGE: 0 };
-    this.w_OnScreenLimit = 3;
-    this.w_ShotRange = 5.0;
-    this.w_ShotSpeed = 10.0;
-    this.w_ShotCooldown = 800.0;
+    this.w_OnScreenLimit = 1;
+    this.w_ShotRange = 18.0;
+    this.w_ShotSpeed = 16.0;
+    this.w_ShotCooldown = 900.0;
     
     // Reset UI displays.
     document.getElementById('game-current-score-display').innerText = `Score: 0`;
@@ -480,20 +484,22 @@ export class PrimaryGameLogicController {
       return 1;
   }
 
-  /**
-   * Upgrades the weapon system stats based on the collected boost type.
-   * @param {string} rewardType - The specific attribute to upgrade.
-   */
   upgradeWeaponSystem(rewardType) {
-      if (!this.w_StatsLevels[rewardType] && rewardType !== 'MEGA_AMMO') {
+      if (!this.w_StatsLevels[rewardType] && rewardType !== 'POINTS') {
           this.w_StatsLevels[rewardType] = 0;
       }
+
+      let upgraded = false;
+      let atMax = false;
 
       switch(rewardType) {
           case 'CAPACITY':
               if (this.w_OnScreenLimit < 6) {
                   this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 1);
                   this.w_StatsLevels['CAPACITY']++;
+                  upgraded = true;
+              } else {
+                  atMax = true;
               }
               break;
               
@@ -503,6 +509,9 @@ export class PrimaryGameLogicController {
               if (this.w_ShotRange < maxRange) {
                   this.w_ShotRange = Math.min(maxRange, this.w_ShotRange + 8);
                   this.w_StatsLevels['RANGE']++;
+                  upgraded = true;
+              } else {
+                  atMax = true;
               }
               break;
               
@@ -510,6 +519,9 @@ export class PrimaryGameLogicController {
               if (this.w_ShotSpeed < 80) {
                   this.w_ShotSpeed = Math.min(80, this.w_ShotSpeed + 10);
                   this.w_StatsLevels['SPEED']++;
+                  upgraded = true;
+              } else {
+                  atMax = true;
               }
               break;
               
@@ -517,13 +529,22 @@ export class PrimaryGameLogicController {
               if (this.w_ShotCooldown > 100) {
                   this.w_ShotCooldown = Math.max(100, this.w_ShotCooldown - 60);
                   this.w_StatsLevels['RATE']++;
+                  upgraded = true;
+              } else {
+                  atMax = true;
               }
+              break;
+          
+          case 'POINTS':
+              // Points don't use levels or "upgraded" status for this notification logic
               break;
       }
       
       // Show Visual Notification
-      this.showBoostNotification(rewardType);
+      this.showBoostNotification(rewardType, upgraded, atMax);
       
+      this.updateAmmunitionHUDDisplay();
+
       // Update the Balance UI to reflect the new state.
       if (this.balanceTuningUI) {
           this.balanceTuningUI.synchronizeUIFromGameState();
@@ -533,20 +554,27 @@ export class PrimaryGameLogicController {
   /**
    * Displays a floating notification over the game area when a boost is collected.
    */
-  showBoostNotification(type) {
+  showBoostNotification(type, upgraded, atMax) {
       const container = document.body;
       const notification = document.createElement('div');
       notification.className = 'boost-notification-popup';
       
-      const level = this.w_StatsLevels[type] || 0;
-      let label = type;
-      if (type === 'CAPACITY') label = 'MAX SHOTS';
-      if (type === 'RATE') label = 'FIRE RATE';
-      
-      notification.innerHTML = `
-        <div class="boost-type" style="color: ${this.getBoostColor(type)}">${label} UP</div>
-        <div class="boost-level">LEVEL ${level}</div>
-      `;
+      if (type === 'POINTS') {
+          notification.innerHTML = `<div class="boost-type" style="color: #ffffff">BONUS POINTS!</div><div class="boost-level">+2000</div>`;
+      } else {
+          const level = this.w_StatsLevels[type] || 0;
+          let label = type;
+          if (type === 'CAPACITY') label = 'CAPACITY';
+          if (type === 'RATE') label = 'RATE';
+          
+          const statusText = atMax ? 'MAXED' : 'UP';
+          const prefix = "BULLET ";
+          
+          notification.innerHTML = `
+            <div class="boost-type" style="color: ${this.getBoostColor(type)}">${prefix}${label} ${statusText}</div>
+            <div class="boost-level">${atMax ? 'LEVEL MAX' : 'LEVEL ' + level}</div>
+          `;
+      }
       
       // Position center-ish but slightly randomized
       const x = 50 + (Math.random() * 20 - 10);

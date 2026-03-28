@@ -56,9 +56,9 @@ export class TacticalBalanceUI {
      * Updates the text labels next to the sliders.
      */
     updateValueLabels() {
-        this.valSpeed.innerText = this.game.w_ShotSpeed;
-        this.valRange.innerText = this.game.w_ShotRange;
-        this.valCooldown.innerText = this.game.w_ShotCooldown;
+        this.valSpeed.innerText = Math.round(this.game.w_ShotSpeed);
+        this.valRange.innerText = Math.round(this.game.w_ShotRange);
+        this.valCooldown.innerText = Math.round(this.game.w_ShotCooldown);
         this.valLimit.innerText = this.game.w_OnScreenLimit;
     }
 

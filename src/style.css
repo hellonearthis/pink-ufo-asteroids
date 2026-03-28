@@ -257,18 +257,20 @@ canvas {
 /* --- 4. HUD ELEMENTS --- */
 .game-current-stats-row {
     position: absolute;
-    top: 30px;
-    left: 40px;
+    top: 20px;
+    left: 20px;
     display: flex;
-    gap: 40px;
+    flex-wrap: wrap;
+    gap: 30px;
 }
 
 .game-current-score-display, 
 .game-current-ammo-display {
-    font-size: 2rem;
+    font-size: 1.4rem;
     font-weight: 900;
     color: #00ffff;
     text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    white-space: nowrap;
 }
 
 .game-over-notification-panel {
