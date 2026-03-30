@@ -402,8 +402,9 @@ export class PrimaryGameLogicController {
     this.playerSpacecraft.mainHullMaterial.color.setHex(0xff0000);
     this.playerSpacecraft.mainHullMaterial.emissive.setHex(0x550000);
     
-    // Make the Game Over notification panel visible.
+    // Make the Game Over notification panel visible and show cursor.
     document.getElementById('game-over-notification-panel').style.display = 'block';
+    document.body.style.cursor = 'auto';
   }
   
   /**
@@ -608,6 +609,7 @@ export class PrimaryGameLogicController {
    */
   beginActiveMission() {
     this.isCurrentlyInSplashScreenMode = false;
+    document.body.style.cursor = 'none';
     
     // UI Transitions.
     document.getElementById('game-loading-splash-screen').style.opacity = '0';
@@ -626,6 +628,7 @@ export class PrimaryGameLogicController {
   returnToSplashScreen() {
     this.isCurrentlyInSplashScreenMode = true;
     this.isGameCurrentlyInGameOverState = false;
+    document.body.style.cursor = 'auto';
     
     // UI Transitions.
     document.getElementById('game-heads-up-display-overlay').style.display = 'none';

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 /**
  * This class represents the player-controlled spacecraft within our 3D environment.
@@ -87,18 +88,74 @@ export class ControlledPlayerSpacecraft {
     
     // 4. THE DIRECTIONAL INDICATOR:
     // This helper mesh (yellow cone) shows the user exactly which way is 'forward'.
-    const indicatorVisualGeometry = new THREE.ConeGeometry(0.3, 1.0, 3);
-    const indicatorVisualMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 }); 
+    // Rescaled larger per user feedback to ensure visibility with the new GLB model.
+    const indicatorVisualGeometry = new THREE.ConeGeometry(0.5, 1.5, 3);
+    const indicatorVisualMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xffff00, 
+        emissive: 0xffff00, 
+        emissiveIntensity: 1.5,
+        transparent: true,
+        opacity: 0.5 
+    }); 
     const primaryDirectionalIndicatorTriangle = new THREE.Mesh(indicatorVisualGeometry, indicatorVisualMaterial);
     
-    // Position it on top of the dome and counter-rotate it so it points 
-    // 'Top' relative to the world, even though its parent is tilted 45 degrees.
-    primaryDirectionalIndicatorTriangle.position.set(0, 1.0, 0.2); 
+    // Position it slightly higher on the Z-axis (normalized from the saucer crown)
+    // to ensure it doesn't clip through the new, larger 3D model.
+    primaryDirectionalIndicatorTriangle.position.set(0, 1.8, 0.4); 
     primaryDirectionalIndicatorTriangle.rotation.x = -Math.PI / 4; 
     
     // Important: We add this to the STATIC group so it stays aligned with 
     // the heading and DOES NOT spin when the UFO body spins.
     this.spacecraftStaticDecorationsGroup.add(primaryDirectionalIndicatorTriangle);
+    
+    // 5. ASSET LOADING (GLB & SHADER/MATCAP):
+    const textureLoader = new THREE.TextureLoader();
+    const gltfLoader = new GLTFLoader();
+    
+    // We use the ufo.jpg as a Matcap (Material Capture) texture.
+    // This provides high-quality lighting and reflections with very low performance cost.
+    const matcapTexture = textureLoader.load('/ufo.jpg');
+    const customUfoMaterial = new THREE.MeshMatcapMaterial({
+      matcap: matcapTexture,
+      color: 0xff00ff // Tint it pink to maintain the "Pink UFO" theme
+    });
+
+    gltfLoader.load('/ufo.glb', (gltf) => {
+      const model = gltf.scene;
+      
+      // Apply our custom material to all meshes in the model
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.material = customUfoMaterial;
+        }
+      });
+
+      // SCALING: The user mentioned it needs scaling. 
+      // We use Box3 to find the model's actual dimensions and scale it to a specific size.
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      
+      // Target size is about 4.0 units (the previous ship's exact diameter). 
+      // This matches the user's request for a '2x' size multiplier over the base visibility.
+      const scaleFactor = 4.0 / maxDim;
+      model.scale.setScalar(scaleFactor); 
+      
+      // Orientation adjustment: 
+      // Most GLB models use Y-up. Since our spin animation works on the parent's Y-axis,
+      // and the parent is tilted on X to give depth, we align the model directly.
+      // Removed the PI/2 rotation that was causing the 'wrong axis' tumbling.
+      model.rotation.x = 0; 
+
+      this.spacecraftSpinningVisualsGroup.add(model);
+      
+      // Hide the procedural saucer if the model loaded successfully
+      saucerMesh.visible = false;
+      cockpitMesh.visible = false;
+      this.ufoRimLights.forEach(l => l.visible = false);
+    }, undefined, (error) => {
+      console.error('Error loading UFO model:', error);
+    });
     
     // PHYSICS PROPERTIES:
     this.currentLinearVelocityVector = new THREE.Vector3(0, 0, 0); // Active movement vector
