@@ -47,14 +47,14 @@ export class SoundManager {
      *   - Medium sounds (500-1000ms) work well for thrust / bonusPickup
      * ===================================================================== */
     this.SPRITE_MAP = {
-      shotFired: "Sprite 26", // ~427ms  — short, snappy
-      shotHit: "Sprite 27", // ~422ms  — short impact
+      shotFired: "Sprite 4", // ~708ms  — User preference
+      shotHit: "Sprite 3", // ~460ms  — User preference
       shipHum: "Sprite 7", // ~1834ms — longer, loopable ambient
       shipThrust: "Sprite 5", // ~868ms  — medium engine burst
-      gameOver: "Sprite 17", // ~2387ms — dramatic, longer
+      gameOver: "Sprite 9", // ~990ms  — User preference
       startScreen: "Sprite 32", // ~1956ms — atmospheric, longer
       bonusPickup: "Sprite 24", // ~586ms  — short reward chime
-      asteroidBreak: "Sprite 28", // ~539ms  — short crunch/crack
+      asteroidBreak: "Sprite 33", // ~361ms  — User preference
     };
 
     /* =====================================================================
