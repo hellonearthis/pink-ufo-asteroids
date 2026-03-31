@@ -326,3 +326,40 @@ function primaryExecutionAnimationLoop() {
  * This single call starts the perpetual cycle of
  * requestAnimationFrame → update → render → requestAnimationFrame → ... */
 primaryExecutionAnimationLoop();
+
+/* ==========================================================================
+ * STEP 9: MOUSE CURSOR AUTO-HIDE LOGIC
+ * ==========================================================================
+ * To improve immersion, the mouse cursor is hidden when not in use.
+ * Logic:
+ *   1. Move mouse → Show cursor immediately, reset 1.5s timer.
+ *   2. No movement for 1.5s → Hide cursor (unless Tuning Console is open).
+ *   3. Tuning Console open → Always show cursor.
+ * ========================================================================== */
+let mouseVisibilityTimeoutId;
+
+function showMouseCursorAndResetHideTimer() {
+  /* Show the physical cursor by restoring the CSS default. */
+  document.body.style.cursor = "default";
+
+  /* Clear the previous timeout to avoid hiding while moving. */
+  clearTimeout(mouseVisibilityTimeoutId);
+
+  /* Set a new timeout to hide the cursor after 1500ms of inactivity. */
+  mouseVisibilityTimeoutId = setTimeout(() => {
+    /* GUARD: Never hide the cursor if the developer Tuning Console is active,
+     * as the user needs the pointer to interact with sliders and buttons. */
+    if (
+      activeGameLogicEngine.balanceTuningUI &&
+      !activeGameLogicEngine.balanceTuningUI.isActive
+    ) {
+      document.body.style.cursor = "none";
+    }
+  }, 1500);
+}
+
+/* Register the mousemove listener globally. */
+window.addEventListener("mousemove", showMouseCursorAndResetHideTimer);
+
+/* Initial trigger: Show cursor on load, then hide after 1.5s. */
+showMouseCursorAndResetHideTimer();
