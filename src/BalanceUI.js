@@ -84,6 +84,8 @@ export class TacticalBalanceUI {
     this.sliderRange = document.getElementById("tuning-shot-range");
     this.sliderCooldown = document.getElementById("tuning-shot-cooldown");
     this.sliderLimit = document.getElementById("tuning-on-screen-limit");
+    this.sliderSpriteNum = document.getElementById("tuning-sprite-selector");
+    this.btnPlaySprite = document.getElementById("tuning-play-sprite-button");
 
     /* =================================================================
      * VALUE DISPLAY LABEL REFERENCES
@@ -99,6 +101,7 @@ export class TacticalBalanceUI {
     this.valRange = document.getElementById("v_val-range");
     this.valCooldown = document.getElementById("v_val-cooldown");
     this.valLimit = document.getElementById("v_val-limit");
+    this.valSpriteNum = document.getElementById("v_val-sprite-num");
 
     /* Set up event listeners for slider interactions (user → game direction). */
     this.setupEventListeners();
@@ -161,10 +164,14 @@ export class TacticalBalanceUI {
     this.sliderSpeed.value = this.game.w_ShotSpeed;
     this.sliderRange.value = this.game.w_ShotRange;
     this.sliderCooldown.value = this.game.w_ShotCooldown;
-    this.sliderLimit.value = this.game.w_OnScreenLimit;
+    this.valLimit.innerText = this.game.w_OnScreenLimit;
+
+    /* Sound test values don't need persistent sync, they just reset to 1. */
+    this.sliderSpriteNum.value = 1;
+    this.valSpriteNum.innerText = "1";
 
     this.updateValueLabels();
-  }
+}
 
   /* =====================================================================
    * updateValueLabels() — REFRESH TEXT DISPLAYS
@@ -248,6 +255,21 @@ export class TacticalBalanceUI {
       this.game.w_OnScreenLimit = parseInt(e.target.value);
       this.game.updateAmmunitionHUDDisplay();
       this.updateValueLabels();
+    });
+
+    /* SOUND TEST SLIDER: Updates the sprite number display. */
+    this.sliderSpriteNum.addEventListener("input", (e) => {
+      this.valSpriteNum.innerText = e.target.value;
+    });
+
+    /* SOUND TEST PLAY BUTTON: Plays the selected sprite (Sprite 1-33). */
+    this.btnPlaySprite.addEventListener("click", () => {
+      const spriteId = `Sprite ${this.sliderSpriteNum.value}`;
+      if (this.game.soundManager) {
+        this.game.soundManager.playSprite(spriteId);
+      } else {
+        console.warn("SoundManager not yet initialized.");
+      }
     });
   }
 }

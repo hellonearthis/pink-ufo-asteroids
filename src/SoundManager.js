@@ -198,6 +198,12 @@ export class SoundManager {
     this.sound.volume(this.volumes.shotFired, id);
   }
 
+  /** Play a specific sprite by name (used for sound testing). */
+  playSprite(spriteName) {
+    const id = this.sound.play(spriteName);
+    this.sound.volume(0.8, id);
+  }
+
   /** Play when a bullet hits an asteroid. */
   playShotHit() {
     const id = this.sound.play(this.SPRITE_MAP.shotHit);

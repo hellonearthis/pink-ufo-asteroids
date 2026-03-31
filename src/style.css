@@ -499,6 +499,31 @@ canvas {
     cursor: pointer;
 }
 
+.tuning-action-button {
+    width: 100%;
+    background: #00ffff;
+    border: none;
+    padding: 8px;
+    margin-top: 10px;
+    color: #000;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 0.7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tuning-action-button:hover {
+    background: #ff00ff;
+    color: #fff;
+    transform: scale(1.02);
+}
+
+.tuning-action-button:active {
+    transform: scale(0.98);
+}
+
 
 /* ==========================================================================
    8. IN-GAME HUD ELEMENTS

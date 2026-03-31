@@ -145,11 +145,6 @@ export class PrimaryGameLogicController {
     this.persistentLocalStorageHighScore =
       parseInt(localStorage.getItem("pink-ufo-asteroids-high-score")) || 0;
 
-    /* BALANCE UI:
-     * Initialize the developer tuning panel (see BalanceUI.js).
-     * We pass 'this' (the game instance) so it can read/write weapon properties. */
-    this.balanceTuningUI = new TacticalBalanceUI(this);
-
     /* SOUND SYSTEM:
      * Initialize Howler.js audio sprite manager (see SoundManager.js).
      * Provides named methods for each game event: playShotFired(), playShotHit(), etc.
@@ -157,6 +152,11 @@ export class PrimaryGameLogicController {
      * atmosphere on first load (Howler handles the mobile audio unlock). */
     this.soundManager = new SoundManager();
     this.soundManager.startStartScreen();
+
+    /* BALANCE UI:
+     * Initialize the developer tuning panel (see BalanceUI.js).
+     * We pass 'this' (the game instance) so it can read/write weapon properties. */
+    this.balanceTuningUI = new TacticalBalanceUI(this);
 
     /* HOTKEY LISTENERS:
      * 'T' toggles the tuning console.
