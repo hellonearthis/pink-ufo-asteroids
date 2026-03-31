@@ -148,7 +148,7 @@ canvas {
      *                     readable regardless of the background image content.
      *   Layer 2 (bottom): The actual splash background image.
      * If splash_bg.png doesn't load, the gradient alone provides a dark backdrop. */
-    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.9)), url('/splash_bg.png');
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.9)), url('../public/splash_bg.png');
     background-size: cover;              /* Scale image to cover entire viewport */
     background-position: center;         /* Center the image if aspect ratios differ */
 

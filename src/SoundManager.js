@@ -141,7 +141,7 @@ export class SoundManager {
 
     /* Create the main Howl instance. */
     this.sound = new Howl({
-      src: ["/GameSounds.wav"],
+      src: ["GameSounds.wav"],
       sprite: spriteDefinition,
       volume: 0.5,
       onloaderror: (id, error) => {

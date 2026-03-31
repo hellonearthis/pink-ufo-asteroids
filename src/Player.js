@@ -332,7 +332,7 @@ export class ControlledPlayerSpacecraft {
      * The 'color: 0xff00ff' tint multiplies the matcap color by pink,
      * ensuring the loaded model stays on-brand regardless of the matcap
      * image's original colors. */
-    const matcapTexture = textureLoader.load("/ufo.jpg");
+    const matcapTexture = textureLoader.load("ufo.jpg");
     const customUfoMaterial = new THREE.MeshMatcapMaterial({
       matcap: matcapTexture,
       color: 0xff00ff,
@@ -350,7 +350,7 @@ export class ControlledPlayerSpacecraft {
      * IMPORTANT: The model is NOT in the scene yet after loading.
      * We must explicitly add gltf.scene (or its children) to our scene graph. */
     gltfLoader.load(
-      "/ufo.glb",
+      "ufo.glb",
       (gltf) => {
         const model = gltf.scene;
 
