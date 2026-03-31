@@ -148,10 +148,9 @@ export class PrimaryGameLogicController {
     /* SOUND SYSTEM:
      * Initialize Howler.js audio sprite manager (see SoundManager.js).
      * Provides named methods for each game event: playShotFired(), playShotHit(), etc.
-     * Start the splash screen ambience immediately so the player hears
-     * atmosphere on first load (Howler handles the mobile audio unlock). */
+     * Disable splash screen ambience for now as requested. */
     this.soundManager = new SoundManager();
-    this.soundManager.startStartScreen();
+    // this.soundManager.startStartScreenAmbience();
 
     /* BALANCE UI:
      * Initialize the developer tuning panel (see BalanceUI.js).
@@ -324,6 +323,28 @@ export class PrimaryGameLogicController {
       this.soundManager.startThrust();
     } else {
       this.soundManager.stopThrust();
+    }
+
+    /* ROTATION SOUND:
+     * Plays when the player is turning left or right. */
+    const isRotating =
+      this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed(
+        "ArrowLeft",
+      ) ||
+      this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed(
+        "ArrowRight",
+      ) ||
+      this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed(
+        "KeyA",
+      ) ||
+      this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed(
+        "KeyD",
+      );
+
+    if (isRotating) {
+      this.soundManager.playShipRotate();
+    } else {
+      this.soundManager.stopShipRotate();
     }
 
     /* SHOOTING LOGIC:
@@ -512,8 +533,13 @@ export class PrimaryGameLogicController {
           /* takeDamage() returns true if the asteroid's health reaches zero. */
           const isAsteroidDestroyed = candidateAsteroid.takeDamage();
           if (isAsteroidDestroyed) {
-            /* SOUND: Play the asteroid break/crunch sound on destruction. */
-            this.soundManager.playAsteroidBreak();
+            /* SOUND: Play the asteroid break/crunch sound on destruction.
+             * Size 1 (small) asteroids use the specific Sprite 27 "boom" sound. */
+            if (candidateAsteroid.relativeHazardSizeCategory === 1) {
+              this.soundManager.playAsteroidBreakSmall();
+            } else {
+              this.soundManager.playAsteroidBreak();
+            }
             this.executeAsteroidDecompositionAndSplitting(candidateAsteroid);
           }
           break; // This bullet is spent — stop checking it against other asteroids.
@@ -558,8 +584,14 @@ export class PrimaryGameLogicController {
         this.playerSpacecraft.physicalCollisionRadius +
           bonus.physicalCollisionRadius
       ) {
-        /* SOUND: Play the bonus pickup chime. */
-        this.soundManager.playBonusPickup();
+        /* SOUND: Play specific audio cues based on the reward type. */
+        if (bonus.rewardType === "SPEED" || bonus.rewardType === "RATE") {
+          this.soundManager.playBonusSpeedup();
+        } else if (bonus.rewardType === "CAPACITY") {
+          this.soundManager.playBonusCapacity();
+        } else {
+          this.soundManager.playBonusPickup();
+        }
 
         this.upgradeWeaponSystem(bonus.rewardType);
 
@@ -574,10 +606,35 @@ export class PrimaryGameLogicController {
       }
     }
 
-    /* --- 4. WAVE COMPLETION CHECK ---
+    /* --- 4. PROXIMITY ALERT CHECK ---
+     * Scans for the nearest asteroid and triggers a dialog warning
+     * if one is dangerously close (within ~15 units).
+     * This logic is executed every frame but SoundManager handles the 3s cooldown. */
+    let minimumDistanceToAnyAsteroid = Infinity;
+    let sizeOfClosestHazard = 1;
+
+    for (const asteroid of this.currentlyActiveAsteroids) {
+      const distanceToPlayer = this.playerSpacecraft.spacecraftRenderingMesh.position.distanceTo(
+        asteroid.asteroidRenderingMesh.position
+      );
+      if (distanceToPlayer < minimumDistanceToAnyAsteroid) {
+        minimumDistanceToAnyAsteroid = distanceToPlayer;
+        sizeOfClosestHazard = asteroid.hazardSizeCategory;
+      }
+    }
+
+    /* Trigger alert if within 15 units (approx 2-3x the sum of collision radii). */
+    if (minimumDistanceToAnyAsteroid < 15) {
+      this.soundManager.playProximityAlert(sizeOfClosestHazard);
+    }
+
+    /* --- 5. WAVE COMPLETION CHECK ---
      * When all asteroids are destroyed, spawn the next wave.
      * This creates an endless wave progression system. */
     if (this.currentlyActiveAsteroids.length === 0) {
+      /* SOUND: Play the "Well Done" audio cue. */
+      this.soundManager.playLevelCleared();
+
       this.currentWaveLevel++;
       this.spawnInitialHazardWave();
     }
@@ -780,6 +837,10 @@ export class PrimaryGameLogicController {
 
     /* Spawn the first wave of asteroids. */
     this.spawnInitialHazardWave();
+
+    /* SOUND: Stop any previous loops (like Game Over ambience) and start gameplay hum. */
+    this.soundManager.stopAll();
+    this.soundManager.startShipHum();
   }
 
   /* ==========================================================================
@@ -992,7 +1053,7 @@ export class PrimaryGameLogicController {
     document.body.style.cursor = "none";
 
     /* SOUND: Transition audio from splash ambience to gameplay hum. */
-    this.soundManager.stopStartScreen();
+    this.soundManager.stopStartScreenAmbience();
     this.soundManager.startShipHum();
 
     /* Trigger the CSS opacity transition (defined in style.css). */
@@ -1026,7 +1087,7 @@ export class PrimaryGameLogicController {
 
     /* SOUND: Stop all gameplay audio and restart the splash screen ambience. */
     this.soundManager.stopAll();
-    this.soundManager.startStartScreen();
+    this.soundManager.startStartScreenAmbience();
 
     document.getElementById("game-heads-up-display-overlay").style.display =
       "none";

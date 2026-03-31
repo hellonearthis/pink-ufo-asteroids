@@ -545,13 +545,19 @@ canvas {
 
 /* Shared styling for score and ammo displays.
  * The cyan color and text-shadow create a "holographic HUD" effect. */
+/* Shared styling for HUD display elements. */
 .game-current-score-display,
 .game-current-ammo-display {
     font-size: 1.4rem;
     font-weight: 900;
     color: #00ffff;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);  /* Soft cyan glow behind the text */
-    white-space: nowrap;           /* Prevent line wrapping within a single stat */
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    white-space: nowrap;
+}
+
+/* Specific font override for the Score display. */
+.game-current-score-display {
+    font-family: 'Audiowide', sans-serif;
 }
 
 

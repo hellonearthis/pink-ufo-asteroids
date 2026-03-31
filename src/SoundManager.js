@@ -47,14 +47,25 @@ export class SoundManager {
      *   - Medium sounds (500-1000ms) work well for thrust / bonusPickup
      * ===================================================================== */
     this.SPRITE_MAP = {
-      shotFired: "Sprite 4", // ~708ms  — User preference
-      shotHit: "Sprite 3", // ~460ms  — User preference
+      /* Randomized Shot Pool (Sprites 1, 2, 4, 5, 6, 12, 13, 25, 26, 31) */
+      shotFiredPool: [
+        "Sprite 1", "Sprite 2", "Sprite 4", "Sprite 5", "Sprite 6",
+        "Sprite 12", "Sprite 13", "Sprite 25", "Sprite 26", "Sprite 31",
+      ],
+      shotHit: "Sprite 3", // ~460ms  — User preference (Large Boom)
       shipHum: "Sprite 7", // ~1834ms — longer, loopable ambient
-      shipThrust: "Sprite 5", // ~868ms  — medium engine burst
-      gameOver: "Sprite 9", // ~990ms  — User preference
-      startScreen: "Sprite 32", // ~1956ms — atmospheric, longer
-      bonusPickup: "Sprite 24", // ~586ms  — short reward chime
-      asteroidBreak: "Sprite 33", // ~361ms  — User preference
+      shipThrust: ["Sprite 17", "Sprite 19", "Sprite 33"], // ~361ms-2300ms — Randomized Thrust!
+      shipRotate: "Sprite 21", // ~924ms   — User preference (turning noise)
+      gameOver: ["Sprite 9", "Sprite 10", "Sprite 11"], // ~990ms-1500ms — Randomized Game Over!
+      startScreen: "Sprite 16", // ~1468ms — User preference
+      startScreenAmbience: "Sprite 32", // ~1956ms — retry/press r sound
+      levelCleared: "Sprite 24", // ~586ms   — User preference (well done)
+      bonusPickup: "Sprite 15", // ~1074ms  — General
+      bonusCapacity: "Sprite 29", // ~1126ms — User preference
+      bonusSpeedup: "Sprite 23", // ~990ms   — User preference
+      asteroidBreak: "Sprite 3", // ~460ms   — User preference (Large Boom)
+      asteroidBreakSmall: "Sprite 27", // ~422ms   — User preference
+      proximityAlert: "Sprite 8", // ~1449ms — Dialog: "Oh no an asteroid"
     };
 
     /* =====================================================================
@@ -127,8 +138,7 @@ export class SoundManager {
      * Howler format: [startMs, durationMs, loop?] */
     const loopingSprites = [
       this.SPRITE_MAP.shipHum,
-      this.SPRITE_MAP.startScreen,
-      this.SPRITE_MAP.shipThrust,
+      ...this.SPRITE_MAP.shipThrust, // Ensure all potential thrust sprites loop
     ];
     const spriteDefinition = {};
     for (const [name, timing] of Object.entries(rawSprites)) {
@@ -166,17 +176,30 @@ export class SoundManager {
       shotHit: 0.4,
       shipHum: 0.15,
       shipThrust: 0.25,
+      shipRotate: 0.2,
       gameOver: 0.6,
       startScreen: 0.2,
+      startScreenAmbience: 0.3,
+      levelCleared: 0.6,
       bonusPickup: 0.5,
+      bonusCapacity: 0.5,
+      bonusSpeedup: 0.6,
       asteroidBreak: 0.4,
+      asteroidBreakSmall: 0.5,
+      proximityAlert: 0.8, // Default base volume
     };
+
+    /* Proximity Alert State */
+    this._lastProximityAlertTime = 0;
+    this._proximityAlertCooldown = 3000; // 3 seconds as requested
 
     /* Track IDs of currently playing looping sounds so we can stop them.
      * Howl.play() returns a numeric ID that can be passed to .stop(id). */
     this._loopIds = {
       shipHum: null,
       startScreen: null,
+      startScreenAmbience: null,
+      shipRotate: null,
     };
 
     /* Track thrust state to avoid re-triggering every frame. */
@@ -185,16 +208,32 @@ export class SoundManager {
   }
 
   /* ==========================================================================
-   * ONE-SHOT SOUND METHODS
-   * ==========================================================================
-   * These play a sound once and forget about it. Howler handles cleanup.
-   * sound.play('spriteName') returns an ID and starts playback immediately.
-   * sound.volume(level, id) sets volume for that specific playback instance.
+   * INTERNAL UTILITIES
    * ========================================================================== */
 
-  /** Play when the player fires a bullet. */
+  /**
+   * Resolves a sprite mapping key to a specific sprite name.
+   * If the mapping is an array, it picks one at random.
+   * @param {string} key - The key in this.SPRITE_MAP to resolve.
+   * @returns {string} - The name of the sprite to play.
+   * @private
+   */
+  _resolveSprite(key) {
+    const value = this.SPRITE_MAP[key];
+    if (Array.isArray(value)) {
+      return value[Math.floor(Math.random() * value.length)];
+    }
+    return value;
+  }
+
+  /* ==========================================================================
+   * ONE-SHOT SOUND METHODS
+   * ========================================================================== */
+
+  /** Play when the player fires a bullet (Randomly selects from pool). */
   playShotFired() {
-    const id = this.sound.play(this.SPRITE_MAP.shotFired);
+    const spriteName = this._resolveSprite("shotFiredPool");
+    const id = this.sound.play(spriteName);
     this.sound.volume(this.volumes.shotFired, id);
   }
 
@@ -206,7 +245,8 @@ export class SoundManager {
 
   /** Play when a bullet hits an asteroid. */
   playShotHit() {
-    const id = this.sound.play(this.SPRITE_MAP.shotHit);
+    const spriteName = this._resolveSprite("shotHit");
+    const id = this.sound.play(spriteName);
     this.sound.volume(this.volumes.shotHit, id);
   }
 
@@ -216,16 +256,76 @@ export class SoundManager {
     this.sound.volume(this.volumes.asteroidBreak, id);
   }
 
-  /** Play when the player collects a bonus gem. */
+  /** Play when a SMALL asteroid is destroyed (Sprite 27). */
+  playAsteroidBreakSmall() {
+    const spriteName = this._resolveSprite("asteroidBreakSmall");
+    const id = this.sound.play(spriteName);
+    this.sound.volume(this.volumes.asteroidBreakSmall, id);
+  }
+
+  /** Play when the player collects a general bonus gem. */
   playBonusPickup() {
     const id = this.sound.play(this.SPRITE_MAP.bonusPickup);
     this.sound.volume(this.volumes.bonusPickup, id);
   }
 
+  /** Play when a Capacity bonus is collected. */
+  playBonusCapacity() {
+    const id = this.sound.play(this.SPRITE_MAP.bonusCapacity);
+    this.sound.volume(this.volumes.bonusCapacity, id);
+  }
+
+  /** Play when a Speedup bonus is collected. */
+  playBonusSpeedup() {
+    const id = this.sound.play(this.SPRITE_MAP.bonusSpeedup);
+    this.sound.volume(this.volumes.bonusSpeedup, id);
+  }
+
+  /** Play when a level/wave is cleared ("Well Done" / Sprite 24). */
+  playLevelCleared() {
+    const spriteName = this._resolveSprite("levelCleared");
+    const id = this.sound.play(spriteName);
+    this.sound.volume(this.volumes.levelCleared, id);
+  }
+
+  /**
+   * Play the proximity alert dialog ("Oh no an asteroid").
+   * Enforces a 3000ms cooldown and scales volume by asteroid size.
+   * @param {number} hazardSizeCategory - 1 (small), 2 (medium), or 3 (large).
+   */
+  playProximityAlert(hazardSizeCategory) {
+    const now = Date.now();
+    if (now - this._lastProximityAlertTime < this._proximityAlertCooldown) {
+      return;
+    }
+
+    const spriteName = this._resolveSprite("proximityAlert");
+    const id = this.sound.play(spriteName);
+
+    /* Dynamic Volume: Large (3) = 0.8, Medium (2) = 0.55, Small (1) = 0.3 */
+    const volumeMultiplier = 0.3 + (hazardSizeCategory - 1) * 0.25;
+    const finalVolume = this.volumes.proximityAlert * volumeMultiplier;
+
+    this.sound.volume(finalVolume, id);
+    this._lastProximityAlertTime = now;
+  }
+
   /** Play the game over sound. */
   playGameOver() {
-    const id = this.sound.play(this.SPRITE_MAP.gameOver);
+    const spriteName = this._resolveSprite("gameOver");
+    const id = this.sound.play(spriteName);
     this.sound.volume(this.volumes.gameOver, id);
+
+    /* When the game-over sound ends, start the start screen ambience. */
+    this.sound.once(
+      "end",
+      (soundId) => {
+        if (soundId === id) {
+          this.startStartScreenAmbience();
+        }
+      },
+      id,
+    );
   }
 
   /* ==========================================================================
@@ -251,17 +351,21 @@ export class SoundManager {
   }
 
   /** Start the start screen ambient sound (loops). */
-  startStartScreen() {
-    if (this._loopIds.startScreen !== null) return;
-    this._loopIds.startScreen = this.sound.play(this.SPRITE_MAP.startScreen);
-    this.sound.volume(this.volumes.startScreen, this._loopIds.startScreen);
+  startStartScreenAmbience() {
+    if (this._loopIds.startScreenAmbience !== null) return;
+    const spriteName = this._resolveSprite("startScreenAmbience");
+    this._loopIds.startScreenAmbience = this.sound.play(spriteName);
+    this.sound.volume(
+      this.volumes.startScreenAmbience,
+      this._loopIds.startScreenAmbience,
+    );
   }
 
   /** Stop the start screen sound. */
-  stopStartScreen() {
-    if (this._loopIds.startScreen !== null) {
-      this.sound.stop(this._loopIds.startScreen);
-      this._loopIds.startScreen = null;
+  stopStartScreenAmbience() {
+    if (this._loopIds.startScreenAmbience !== null) {
+      this.sound.stop(this._loopIds.startScreenAmbience);
+      this._loopIds.startScreenAmbience = null;
     }
   }
 
@@ -277,7 +381,8 @@ export class SoundManager {
   startThrust() {
     if (this._isThrustPlaying) return;
     this._isThrustPlaying = true;
-    this._thrustId = this.sound.play(this.SPRITE_MAP.shipThrust);
+    const spriteName = this._resolveSprite("shipThrust");
+    this._thrustId = this.sound.play(spriteName);
     this.sound.volume(this.volumes.shipThrust, this._thrustId);
   }
 
@@ -290,6 +395,21 @@ export class SoundManager {
     }
   }
 
+  /** Start the ship turning noise (loops). */
+  playShipRotate() {
+    if (this._loopIds.shipRotate !== null) return;
+    this._loopIds.shipRotate = this.sound.play(this.SPRITE_MAP.shipRotate);
+    this.sound.volume(this.volumes.shipRotate, this._loopIds.shipRotate);
+  }
+
+  /** Stop the ship turning noise. */
+  stopShipRotate() {
+    if (this._loopIds.shipRotate !== null) {
+      this.sound.stop(this._loopIds.shipRotate);
+      this._loopIds.shipRotate = null;
+    }
+  }
+
   /* ==========================================================================
    * GLOBAL CONTROLS
    * ========================================================================== */
@@ -299,6 +419,7 @@ export class SoundManager {
     this.sound.stop();
     this._loopIds.shipHum = null;
     this._loopIds.startScreen = null;
+    this._loopIds.shipRotate = null;
     this._isThrustPlaying = false;
     this._thrustId = null;
   }
