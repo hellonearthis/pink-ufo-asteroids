@@ -34,7 +34,7 @@
  *      each frame (simulated drag), and position wraps at screen edges.
  * ============================================================================ */
 
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /* GLTFLoader is NOT part of Three.js core — it lives in the 'examples' directory.
  * GLTF (GL Transmission Format) is the "JPEG of 3D" — a standardized, efficient
@@ -43,8 +43,7 @@ import * as THREE from 'three';
  * WHY import from 'three/examples/jsm/...'?
  * Three.js ships "addon" utilities (loaders, controls, post-processing) in
  * the examples/jsm/ directory. Vite resolves this path from node_modules. */
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 /**
  * This class represents the player-controlled spacecraft within our 3D environment.
@@ -112,7 +111,6 @@ export class ControlledPlayerSpacecraft {
     this.spacecraftStaticDecorationsGroup.rotation.x = Math.PI / 4;
     this.spacecraftHeadingContainer.add(this.spacecraftStaticDecorationsGroup);
 
-
     /* =====================================================================
      * 1. THE MAIN SAUCER BODY (Procedural Fallback)
      * =====================================================================
@@ -153,7 +151,7 @@ export class ControlledPlayerSpacecraft {
       emissive: 0xaa00aa,
       emissiveIntensity: 0.5,
       roughness: 0.2,
-      metalness: 0.8
+      metalness: 0.8,
     });
 
     /* Store a reference to the hull material so Game.js can change the color
@@ -166,7 +164,6 @@ export class ControlledPlayerSpacecraft {
      * APPEARANCE (color, shading, texture). */
     const saucerMesh = new THREE.Mesh(saucerBodyGeometry, saucerMaterial);
     this.spacecraftSpinningVisualsGroup.add(saucerMesh);
-
 
     /* =====================================================================
      * 2. THE COCKPIT DOME
@@ -182,20 +179,27 @@ export class ControlledPlayerSpacecraft {
      * top hemisphere (from north pole to equator), creating a dome shape.
      * The full sphere would have thetaLength=Math.PI (0 to π).
      * ===================================================================== */
-    const cockpitDomeGeometry = new THREE.SphereGeometry(0.8, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+    const cockpitDomeGeometry = new THREE.SphereGeometry(
+      0.8,
+      32,
+      16,
+      0,
+      Math.PI * 2,
+      0,
+      Math.PI / 2,
+    );
     const cockpitMaterial = new THREE.MeshStandardMaterial({
-      color: 0x00ffff,        // Cyan base color
-      transparent: true,      // REQUIRED to enable opacity < 1.0. Without this flag,
-                              // Three.js ignores the opacity value entirely.
-      opacity: 0.6,           // 60% opaque = semi-transparent glass effect.
-                              // Objects behind the cockpit will be partially visible.
-      emissive: 0x008888,     // Dim cyan self-illumination
-      emissiveIntensity: 0.2
+      color: 0x00ffff, // Cyan base color
+      transparent: true, // REQUIRED to enable opacity < 1.0. Without this flag,
+      // Three.js ignores the opacity value entirely.
+      opacity: 0.6, // 60% opaque = semi-transparent glass effect.
+      // Objects behind the cockpit will be partially visible.
+      emissive: 0x008888, // Dim cyan self-illumination
+      emissiveIntensity: 0.2,
     });
     const cockpitMesh = new THREE.Mesh(cockpitDomeGeometry, cockpitMaterial);
-    cockpitMesh.position.y = 0.2;  // Offset upward so it sits on top of the flattened saucer
+    cockpitMesh.position.y = 0.2; // Offset upward so it sits on top of the flattened saucer
     this.spacecraftSpinningVisualsGroup.add(cockpitMesh);
-
 
     /* =====================================================================
      * 3. UFO RIM LIGHTS
@@ -222,22 +226,25 @@ export class ControlledPlayerSpacecraft {
      * ===================================================================== */
     this.ufoRimLights = [];
     const lightQuantity = 8;
-    const lightRadius = 1.8;    // Distance from saucer center to each light
+    const lightRadius = 1.8; // Distance from saucer center to each light
     for (let i = 0; i < lightQuantity; i++) {
-        const lightGeom = new THREE.SphereGeometry(0.15, 8, 8);  // Tiny sphere (8 segments is enough at this size)
-        const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const lightMesh = new THREE.Mesh(lightGeom, lightMat);
+      const lightGeom = new THREE.SphereGeometry(0.15, 8, 8); // Tiny sphere (8 segments is enough at this size)
+      const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const lightMesh = new THREE.Mesh(lightGeom, lightMat);
 
-        /* Calculate the angle for this specific light (evenly spaced around the circle). */
-        const angle = (i / lightQuantity) * Math.PI * 2;
-        /* Place the light at the calculated position.
-         * Y=-0.1 pushes it slightly below the saucer's equator (the widest point). */
-        lightMesh.position.set(Math.cos(angle) * lightRadius, -0.1, Math.sin(angle) * lightRadius);
+      /* Calculate the angle for this specific light (evenly spaced around the circle). */
+      const angle = (i / lightQuantity) * Math.PI * 2;
+      /* Place the light at the calculated position.
+       * Y=-0.1 pushes it slightly below the saucer's equator (the widest point). */
+      lightMesh.position.set(
+        Math.cos(angle) * lightRadius,
+        -0.1,
+        Math.sin(angle) * lightRadius,
+      );
 
-        this.spacecraftSpinningVisualsGroup.add(lightMesh);
-        this.ufoRimLights.push(lightMesh);     // Keep references for animation in performFrameUpdate()
+      this.spacecraftSpinningVisualsGroup.add(lightMesh);
+      this.ufoRimLights.push(lightMesh); // Keep references for animation in performFrameUpdate()
     }
-
 
     /* =====================================================================
      * 4. THE DIRECTIONAL INDICATOR (Forward-Facing Cone)
@@ -259,13 +266,16 @@ export class ControlledPlayerSpacecraft {
      * ===================================================================== */
     const indicatorVisualGeometry = new THREE.ConeGeometry(0.5, 1.5, 3);
     const indicatorVisualMaterial = new THREE.MeshStandardMaterial({
-        color: 0xffff00,           // Bright yellow — high contrast against the pink/cyan scheme
-        emissive: 0xffff00,        // Self-illuminating so it's visible from any angle
-        emissiveIntensity: 1.5,    // Very bright glow (>1.0 is allowed, makes it bloom)
-        transparent: true,
-        opacity: 0.5               // Semi-transparent to avoid visual clutter
+      color: 0xffff00, // Bright yellow — high contrast against the pink/cyan scheme
+      emissive: 0xffff00, // Self-illuminating so it's visible from any angle
+      emissiveIntensity: 1.5, // Very bright glow (>1.0 is allowed, makes it bloom)
+      transparent: true,
+      opacity: 0.5, // Semi-transparent to avoid visual clutter
     });
-    const primaryDirectionalIndicatorTriangle = new THREE.Mesh(indicatorVisualGeometry, indicatorVisualMaterial);
+    const primaryDirectionalIndicatorTriangle = new THREE.Mesh(
+      indicatorVisualGeometry,
+      indicatorVisualMaterial,
+    );
 
     /* Position the cone above and in front of the saucer.
      * y=1.8: Forward along the local Y-axis (the "up" direction in our game's 2D plane).
@@ -277,8 +287,9 @@ export class ControlledPlayerSpacecraft {
      * making the cone appear upright relative to the gameplay plane. */
     primaryDirectionalIndicatorTriangle.rotation.x = -Math.PI / 4;
 
-    this.spacecraftStaticDecorationsGroup.add(primaryDirectionalIndicatorTriangle);
-
+    this.spacecraftStaticDecorationsGroup.add(
+      primaryDirectionalIndicatorTriangle,
+    );
 
     /* =====================================================================
      * 5. ASSET LOADING — GLB MODEL + MATCAP TEXTURE
@@ -321,10 +332,10 @@ export class ControlledPlayerSpacecraft {
      * The 'color: 0xff00ff' tint multiplies the matcap color by pink,
      * ensuring the loaded model stays on-brand regardless of the matcap
      * image's original colors. */
-    const matcapTexture = textureLoader.load('/ufo.jpg');
+    const matcapTexture = textureLoader.load("/ufo.jpg");
     const customUfoMaterial = new THREE.MeshMatcapMaterial({
       matcap: matcapTexture,
-      color: 0xff00ff
+      color: 0xff00ff,
     });
 
     /* GLTFLoader.load() is ASYNCHRONOUS.
@@ -338,69 +349,72 @@ export class ControlledPlayerSpacecraft {
      *
      * IMPORTANT: The model is NOT in the scene yet after loading.
      * We must explicitly add gltf.scene (or its children) to our scene graph. */
-    gltfLoader.load('/ufo.glb', (gltf) => {
-      const model = gltf.scene;
+    gltfLoader.load(
+      "/ufo.glb",
+      (gltf) => {
+        const model = gltf.scene;
 
-      /* model.traverse() walks through EVERY node in the model's hierarchy
-       * (including the root, all children, grandchildren, etc.).
-       * We use it to replace all materials with our custom matcap material.
-       *
-       * child.isMesh is a Three.js type-check flag. The hierarchy may contain
-       * Groups, Bones, Lights, and Meshes — we only want to modify Meshes. */
-      model.traverse((child) => {
-        if (child.isMesh) {
-          child.material = customUfoMaterial;
-        }
-      });
+        /* model.traverse() walks through EVERY node in the model's hierarchy
+         * (including the root, all children, grandchildren, etc.).
+         * We use it to replace all materials with our custom matcap material.
+         *
+         * child.isMesh is a Three.js type-check flag. The hierarchy may contain
+         * Groups, Bones, Lights, and Meshes — we only want to modify Meshes. */
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.material = customUfoMaterial;
+          }
+        });
 
-      /* AUTO-SCALING TECHNIQUE:
-       * 3D models come in varying unit scales (some in meters, some in
-       * centimeters, some in arbitrary units). Instead of guessing the
-       * right scale factor, we:
-       *
-       * 1. Compute the model's BOUNDING BOX using Box3.setFromObject().
-       *    This analyzes all vertices in all child meshes to find the
-       *    minimum and maximum coordinates on each axis.
-       *
-       * 2. Get the SIZE of the bounding box (max - min on each axis).
-       *
-       * 3. Find the LARGEST dimension (so the model fits within our target
-       *    regardless of its proportions).
-       *
-       * 4. Calculate scaleFactor = targetSize / largestDimension.
-       *    This ensures the model's largest dimension equals exactly 4.0 units
-       *    (matching the procedural saucer's diameter).
-       *
-       * model.scale.setScalar(factor) applies the same scale to X, Y, and Z,
-       * preserving the model's proportions (no stretching). */
-      const box = new THREE.Box3().setFromObject(model);
-      const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const scaleFactor = 4.0 / maxDim;
-      model.scale.setScalar(scaleFactor);
+        /* AUTO-SCALING TECHNIQUE:
+         * 3D models come in varying unit scales (some in meters, some in
+         * centimeters, some in arbitrary units). Instead of guessing the
+         * right scale factor, we:
+         *
+         * 1. Compute the model's BOUNDING BOX using Box3.setFromObject().
+         *    This analyzes all vertices in all child meshes to find the
+         *    minimum and maximum coordinates on each axis.
+         *
+         * 2. Get the SIZE of the bounding box (max - min on each axis).
+         *
+         * 3. Find the LARGEST dimension (so the model fits within our target
+         *    regardless of its proportions).
+         *
+         * 4. Calculate scaleFactor = targetSize / largestDimension.
+         *    This ensures the model's largest dimension equals exactly 4.0 units
+         *    (matching the procedural saucer's diameter).
+         *
+         * model.scale.setScalar(factor) applies the same scale to X, Y, and Z,
+         * preserving the model's proportions (no stretching). */
+        const box = new THREE.Box3().setFromObject(model);
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scaleFactor = 4.0 / maxDim;
+        model.scale.setScalar(scaleFactor);
 
-      /* Reset the model's X rotation to 0.
-       * Some GLB exporters bake a rotation into the model to convert between
-       * coordinate systems (e.g., Blender uses Z-up, Three.js uses Y-up).
-       * We clear this to let our parent group's rotation handle orientation. */
-      model.rotation.x = 0;
+        /* Reset the model's X rotation to 0.
+         * Some GLB exporters bake a rotation into the model to convert between
+         * coordinate systems (e.g., Blender uses Z-up, Three.js uses Y-up).
+         * We clear this to let our parent group's rotation handle orientation. */
+        model.rotation.x = 0;
 
-      this.spacecraftSpinningVisualsGroup.add(model);
+        this.spacecraftSpinningVisualsGroup.add(model);
 
-      /* Hide the procedural fallback geometry now that the real model is loaded.
-       * We set .visible = false instead of removing them from the scene because
-       * removal would require null-checks elsewhere in the code. */
-      saucerMesh.visible = false;
-      cockpitMesh.visible = false;
-      this.ufoRimLights.forEach(l => l.visible = false);
-
-    }, undefined, (error) => {
-      /* If the model fails to load (404, network error, corrupted file),
-       * we log the error but the game continues with procedural geometry.
-       * This is the graceful degradation pattern. */
-      console.error('Error loading UFO model:', error);
-    });
-
+        /* Hide the procedural fallback geometry now that the real model is loaded.
+         * We set .visible = false instead of removing them from the scene because
+         * removal would require null-checks elsewhere in the code. */
+        saucerMesh.visible = false;
+        cockpitMesh.visible = false;
+        this.ufoRimLights.forEach((l) => (l.visible = false));
+      },
+      undefined,
+      (error) => {
+        /* If the model fails to load (404, network error, corrupted file),
+         * we log the error but the game continues with procedural geometry.
+         * This is the graceful degradation pattern. */
+        console.error("Error loading UFO model:", error);
+      },
+    );
 
     /* =====================================================================
      * 6. PHYSICS PROPERTIES
@@ -435,7 +449,6 @@ export class ControlledPlayerSpacecraft {
      * than the sum of both entities' collision radii. */
     this.physicalCollisionRadius = 2.0;
 
-
     /* =====================================================================
      * 7. ANIMATION STATE
      * =====================================================================
@@ -445,7 +458,6 @@ export class ControlledPlayerSpacecraft {
      * ===================================================================== */
     this.totalRunningTime = 0;
   }
-
 
   /* ==========================================================================
    * performFrameUpdate() — PLAYER SHIP UPDATE TICK
@@ -464,7 +476,6 @@ export class ControlledPlayerSpacecraft {
     /* Accumulate total time for animation calculations. */
     this.totalRunningTime += timeDeltaInSeconds;
 
-
     /* --- 1. INPUT HANDLING: ROTATION ---
      * Directly modifying the Z-rotation of the heading container.
      *
@@ -479,15 +490,20 @@ export class ControlledPlayerSpacecraft {
      *
      * We multiply by timeDeltaInSeconds to make rotation speed consistent
      * regardless of frame rate (see delta time explanation in main.js). */
-    if (playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed('ArrowLeft') ||
-        playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed('KeyA')) {
-      this.spacecraftHeadingContainer.rotation.z += this.angularRotationSpeedPerSecond * timeDeltaInSeconds;
+    if (
+      playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed("ArrowLeft") ||
+      playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed("KeyA")
+    ) {
+      this.spacecraftHeadingContainer.rotation.z +=
+        this.angularRotationSpeedPerSecond * timeDeltaInSeconds;
     }
-    if (playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed('ArrowRight') ||
-        playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed('KeyD')) {
-      this.spacecraftHeadingContainer.rotation.z -= this.angularRotationSpeedPerSecond * timeDeltaInSeconds;
+    if (
+      playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed("ArrowRight") ||
+      playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed("KeyD")
+    ) {
+      this.spacecraftHeadingContainer.rotation.z -=
+        this.angularRotationSpeedPerSecond * timeDeltaInSeconds;
     }
-
 
     /* --- 2. INPUT HANDLING: THRUST ---
      * We calculate a FORWARD DIRECTION vector based on the current heading,
@@ -504,21 +520,23 @@ export class ControlledPlayerSpacecraft {
      *
      * applyAxisAngle(axis, angle) uses the Rodrigues' rotation formula
      * internally to rotate a 3D vector around an arbitrary axis. */
-    if (playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed('ArrowUp') ||
-        playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed('KeyW')) {
-
+    if (
+      playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed("ArrowUp") ||
+      playerInputTracker.verifyIfSpecificKeyIsCurrentlyPressed("KeyW")
+    ) {
       const forwardDirectionVector = new THREE.Vector3(0, 1, 0);
       forwardDirectionVector.applyAxisAngle(
-        new THREE.Vector3(0, 0, 1),  // Rotation axis (Z)
-        this.spacecraftHeadingContainer.rotation.z   // Current heading angle
+        new THREE.Vector3(0, 0, 1), // Rotation axis (Z)
+        this.spacecraftHeadingContainer.rotation.z, // Current heading angle
       );
       /* multiplyScalar() scales the direction vector by the thrust magnitude.
        * .add() then adds this thrust impulse to the current velocity. */
       this.currentLinearVelocityVector.add(
-        forwardDirectionVector.multiplyScalar(this.proportionalThrustForcePower * timeDeltaInSeconds)
+        forwardDirectionVector.multiplyScalar(
+          this.proportionalThrustForcePower * timeDeltaInSeconds,
+        ),
       );
     }
-
 
     /* --- 3. COSMETIC ANIMATIONS ---
      * These animations are purely visual and don't affect gameplay physics. */
@@ -556,11 +574,10 @@ export class ControlledPlayerSpacecraft {
      * scale.setScalar() uniformly scales the mesh. Oscillating between 0.8x
      * and 1.2x makes the lights visually "breathe". */
     this.ufoRimLights.forEach((light, index) => {
-        const pulse = Math.sin(this.totalRunningTime * 10 + index) * 0.5 + 0.5;
-        light.material.color.setHSL(0.8, 1, 0.5 + pulse * 0.5);
-        light.scale.setScalar(0.8 + pulse * 0.4);
+      const pulse = Math.sin(this.totalRunningTime * 10 + index) * 0.5 + 0.5;
+      light.material.color.setHSL(0.8, 1, 0.5 + pulse * 0.5);
+      light.scale.setScalar(0.8 + pulse * 0.4);
     });
-
 
     /* --- 4. PHYSICS UPDATES --- */
 
@@ -577,7 +594,7 @@ export class ControlledPlayerSpacecraft {
      * At 30fps: deltaTime ≈ 0.0333, exponent = 0.0333 * 60 = 2.0 → 0.98^2.0
      * Both produce the same velocity reduction per second (~0.98^60 ≈ 0.30). */
     this.currentLinearVelocityVector.multiplyScalar(
-      Math.pow(this.momentumDecayCoefficient, timeDeltaInSeconds * 60)
+      Math.pow(this.momentumDecayCoefficient, timeDeltaInSeconds * 60),
     );
 
     /* POSITION UPDATE:
@@ -588,9 +605,8 @@ export class ControlledPlayerSpacecraft {
      * might use Verlet or Runge-Kutta integration for better accuracy. */
     this.spacecraftHeadingContainer.position.addScaledVector(
       this.currentLinearVelocityVector,
-      timeDeltaInSeconds
+      timeDeltaInSeconds,
     );
-
 
     /* --- 5. SCREEN WRAPPING ---
      * When the ship crosses a boundary, it teleports to the opposite edge.
@@ -612,7 +628,6 @@ export class ControlledPlayerSpacecraft {
     else if (pos.y < limits.bottom - buffer) pos.y = limits.top + buffer;
   }
 
-
   /* ==========================================================================
    * PROPERTY ACCESSORS
    * ==========================================================================
@@ -631,6 +646,6 @@ export class ControlledPlayerSpacecraft {
 
   /** Returns the spinning visuals group (used internally for animation control). */
   get spacecraftRenderingGroup() {
-      return this.spacecraftSpinningVisualsGroup;
+    return this.spacecraftSpinningVisualsGroup;
   }
 }

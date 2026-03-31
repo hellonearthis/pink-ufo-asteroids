@@ -24,8 +24,7 @@
  * so it's easy to reassign.
  * ============================================================================ */
 
-import { Howl } from 'howler';
-
+import { Howl } from "howler";
 
 /**
  * Manages all game audio through a single Howler.js audio sprite instance.
@@ -34,7 +33,6 @@ import { Howl } from 'howler';
  */
 export class SoundManager {
   constructor() {
-
     /* =====================================================================
      * SPRITE NAME → GAME ACTION MAPPING
      * =====================================================================
@@ -49,14 +47,14 @@ export class SoundManager {
      *   - Medium sounds (500-1000ms) work well for thrust / bonusPickup
      * ===================================================================== */
     this.SPRITE_MAP = {
-      shotFired:    'Sprite 26',   // ~427ms  — short, snappy
-      shotHit:      'Sprite 27',   // ~422ms  — short impact
-      shipHum:      'Sprite 7',    // ~1834ms — longer, loopable ambient
-      shipThrust:   'Sprite 5',    // ~868ms  — medium engine burst
-      gameOver:     'Sprite 17',   // ~2387ms — dramatic, longer
-      startScreen:  'Sprite 32',   // ~1956ms — atmospheric, longer
-      bonusPickup:  'Sprite 24',   // ~586ms  — short reward chime
-      asteroidBreak:'Sprite 28',   // ~539ms  — short crunch/crack
+      shotFired: "Sprite 26", // ~427ms  — short, snappy
+      shotHit: "Sprite 27", // ~422ms  — short impact
+      shipHum: "Sprite 7", // ~1834ms — longer, loopable ambient
+      shipThrust: "Sprite 5", // ~868ms  — medium engine burst
+      gameOver: "Sprite 17", // ~2387ms — dramatic, longer
+      startScreen: "Sprite 32", // ~1956ms — atmospheric, longer
+      bonusPickup: "Sprite 24", // ~586ms  — short reward chime
+      asteroidBreak: "Sprite 28", // ~539ms  — short crunch/crack
     };
 
     /* =====================================================================
@@ -90,15 +88,15 @@ export class SoundManager {
      * The raw data is embedded here to avoid an async fetch on startup.
      * If you update GameSound_sprite.json, update this object too. */
     const rawSprites = {
-      "Sprite 1":  [0, 1598],
-      "Sprite 2":  [2198, 461],
-      "Sprite 3":  [2678, 460],
-      "Sprite 4":  [3546, 708],
-      "Sprite 5":  [5075, 868],
-      "Sprite 6":  [6238, 689],
-      "Sprite 7":  [6946, 1834],
-      "Sprite 8":  [8902, 1449],
-      "Sprite 9":  [11214, 990],
+      "Sprite 1": [0, 1598],
+      "Sprite 2": [2198, 461],
+      "Sprite 3": [2678, 460],
+      "Sprite 4": [3546, 708],
+      "Sprite 5": [5075, 868],
+      "Sprite 6": [6238, 689],
+      "Sprite 7": [6946, 1834],
+      "Sprite 8": [8902, 1449],
+      "Sprite 9": [11214, 990],
       "Sprite 10": [13311, 1140],
       "Sprite 11": [15478, 1454],
       "Sprite 12": [17415, 877],
@@ -130,12 +128,12 @@ export class SoundManager {
     const loopingSprites = [
       this.SPRITE_MAP.shipHum,
       this.SPRITE_MAP.startScreen,
-      this.SPRITE_MAP.shipThrust
+      this.SPRITE_MAP.shipThrust,
     ];
     const spriteDefinition = {};
     for (const [name, timing] of Object.entries(rawSprites)) {
       if (loopingSprites.includes(name)) {
-        spriteDefinition[name] = [timing[0], timing[1], true];  // Loop = true
+        spriteDefinition[name] = [timing[0], timing[1], true]; // Loop = true
       } else {
         spriteDefinition[name] = timing;
       }
@@ -143,18 +141,18 @@ export class SoundManager {
 
     /* Create the main Howl instance. */
     this.sound = new Howl({
-      src: ['/GameSounds.wav'],
+      src: ["/GameSounds.wav"],
       sprite: spriteDefinition,
       volume: 0.5,
       onloaderror: (id, error) => {
-        console.error('Audio load error:', error);
+        console.error("Audio load error:", error);
       },
       onplayerror: (id, error) => {
-        console.error('Audio play error:', error);
-        this.sound.once('unlock', () => {
+        console.error("Audio play error:", error);
+        this.sound.once("unlock", () => {
           this.sound.play(id);
         });
-      }
+      },
     });
 
     /* =====================================================================
@@ -164,13 +162,13 @@ export class SoundManager {
      * Ambient/loop sounds are quieter; one-shot effects are louder.
      * ===================================================================== */
     this.volumes = {
-      shotFired:     0.3,
-      shotHit:       0.4,
-      shipHum:       0.15,
-      shipThrust:    0.25,
-      gameOver:      0.6,
-      startScreen:   0.2,
-      bonusPickup:   0.5,
+      shotFired: 0.3,
+      shotHit: 0.4,
+      shipHum: 0.15,
+      shipThrust: 0.25,
+      gameOver: 0.6,
+      startScreen: 0.2,
+      bonusPickup: 0.5,
       asteroidBreak: 0.4,
     };
 
@@ -185,7 +183,6 @@ export class SoundManager {
     this._isThrustPlaying = false;
     this._thrustId = null;
   }
-
 
   /* ==========================================================================
    * ONE-SHOT SOUND METHODS
@@ -225,7 +222,6 @@ export class SoundManager {
     this.sound.volume(this.volumes.gameOver, id);
   }
 
-
   /* ==========================================================================
    * LOOPING SOUND METHODS
    * ==========================================================================
@@ -235,7 +231,7 @@ export class SoundManager {
 
   /** Start the ambient ship hum (loops continuously during gameplay). */
   startShipHum() {
-    if (this._loopIds.shipHum !== null) return;  // Already playing
+    if (this._loopIds.shipHum !== null) return; // Already playing
     this._loopIds.shipHum = this.sound.play(this.SPRITE_MAP.shipHum);
     this.sound.volume(this.volumes.shipHum, this._loopIds.shipHum);
   }
@@ -263,7 +259,6 @@ export class SoundManager {
     }
   }
 
-
   /* ==========================================================================
    * THRUST SOUND (Semi-Looping)
    * ==========================================================================
@@ -288,7 +283,6 @@ export class SoundManager {
       this._thrustId = null;
     }
   }
-
 
   /* ==========================================================================
    * GLOBAL CONTROLS

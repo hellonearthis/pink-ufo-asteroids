@@ -34,8 +34,7 @@
  *      create organic, non-repetitive-feeling motion.
  * ============================================================================ */
 
-import * as THREE from 'three';
-
+import * as THREE from "three";
 
 /**
  * Represents a collectible power-up that appears when asteroid families
@@ -56,10 +55,14 @@ export class BonusPickupElement {
    *   'RANGE'    — Increases bullet travel distance (Pink gem).
    *   'POINTS'   — Awards bonus score points (Green gem).
    */
-  constructor(parentGameRenderingScene, spawnCoordinate, identifyingColor, rewardType = 'CAPACITY') {
+  constructor(
+    parentGameRenderingScene,
+    spawnCoordinate,
+    identifyingColor,
+    rewardType = "CAPACITY",
+  ) {
     this.parentGameRenderingScene = parentGameRenderingScene;
     this.rewardType = rewardType;
-
 
     /* =====================================================================
      * COLOR MAPPING BY REWARD TYPE
@@ -74,15 +77,14 @@ export class BonusPickupElement {
      * identifyingColor parameter (which is the asteroid's color).
      * ===================================================================== */
     const rewardColorMap = {
-        'CAPACITY': 0xff0000, // Red    — "More ammo" is traditionally red
-        'SPEED':    0xffa500, // Orange — Warm colors suggest speed/energy
-        'RATE':     0xffff00, // Yellow — Rapid-fire, electric energy
-        'RANGE':    0xff69b4, // Pink   — Matches the game's pink brand
-        'POINTS':   0x00ff00  // Green  — Currency/value is traditionally green
+      CAPACITY: 0xff0000, // Red    — "More ammo" is traditionally red
+      SPEED: 0xffa500, // Orange — Warm colors suggest speed/energy
+      RATE: 0xffff00, // Yellow — Rapid-fire, electric energy
+      RANGE: 0xff69b4, // Pink   — Matches the game's pink brand
+      POINTS: 0x00ff00, // Green  — Currency/value is traditionally green
     };
 
     this.identifyingColor = rewardColorMap[rewardType] || identifyingColor;
-
 
     /* =====================================================================
      * 1. THE GEM MESH (Faceted Crystal)
@@ -113,10 +115,9 @@ export class BonusPickupElement {
       metalness: 0.9,
       roughness: 0.1,
       transparent: true,
-      opacity: 0.85
+      opacity: 0.85,
     });
     this.gemMesh = new THREE.Mesh(gemGeometry, gemMaterial);
-
 
     /* =====================================================================
      * 1b. WHITE EDGE OUTLINES
@@ -141,18 +142,22 @@ export class BonusPickupElement {
      * from Three.js addons, which uses triangle-based line rendering.
      * ===================================================================== */
     const gemEdgesGeometry = new THREE.EdgesGeometry(gemGeometry);
-    const gemEdgesMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
-    const gemEdgesMesh = new THREE.LineSegments(gemEdgesGeometry, gemEdgesMaterial);
+    const gemEdgesMaterial = new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      linewidth: 2,
+    });
+    const gemEdgesMesh = new THREE.LineSegments(
+      gemEdgesGeometry,
+      gemEdgesMaterial,
+    );
 
     /* Parent-child relationship: edges inherit the gem's transforms.
      * When the gem spins, the edges spin with it automatically. */
     this.gemMesh.add(gemEdgesMesh);
 
-
     /* Set the gem's position to the spawn coordinate and add to the scene. */
     this.gemMesh.position.copy(spawnCoordinate);
     this.parentGameRenderingScene.add(this.gemMesh);
-
 
     /* =====================================================================
      * 2. THE TIMER BAR (3D Progress Bar)
@@ -182,10 +187,13 @@ export class BonusPickupElement {
      * ===================================================================== */
     const barBackgroundGeometry = new THREE.PlaneGeometry(2.0, 0.2);
     const barBackgroundMaterial = new THREE.MeshBasicMaterial({
-      color: 0x333333,         // Dark grey — unobtrusive background
-      side: THREE.DoubleSide   // Visible from both sides of the plane
+      color: 0x333333, // Dark grey — unobtrusive background
+      side: THREE.DoubleSide, // Visible from both sides of the plane
     });
-    this.timerBarBackground = new THREE.Mesh(barBackgroundGeometry, barBackgroundMaterial);
+    this.timerBarBackground = new THREE.Mesh(
+      barBackgroundGeometry,
+      barBackgroundMaterial,
+    );
 
     /* Position the bar floating 1.8 units above the gem's local origin. */
     this.timerBarBackground.position.set(0, 1.8, 0);
@@ -194,10 +202,13 @@ export class BonusPickupElement {
     /* FOREGROUND BAR (the "fill" that shrinks from left to right). */
     const barForegroundGeometry = new THREE.PlaneGeometry(2.0, 0.2);
     const barForegroundMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffffff,         // White — high contrast against dark background
-      side: THREE.DoubleSide
+      color: 0xffffff, // White — high contrast against dark background
+      side: THREE.DoubleSide,
     });
-    this.timerBarForeground = new THREE.Mesh(barForegroundGeometry, barForegroundMaterial);
+    this.timerBarForeground = new THREE.Mesh(
+      barForegroundGeometry,
+      barForegroundMaterial,
+    );
 
     /* Z-FIGHTING PREVENTION:
      * When two planes occupy the EXACT same 3D position and orientation,
@@ -210,7 +221,6 @@ export class BonusPickupElement {
      * The offset is small enough to be imperceptible to the viewer. */
     this.timerBarForeground.position.set(0, 0, 0.01);
     this.timerBarBackground.add(this.timerBarForeground);
-
 
     /* =====================================================================
      * STATE INITIALIZATION
@@ -232,7 +242,6 @@ export class BonusPickupElement {
     this.accumulatedRotationTime = 0;
   }
 
-
   /* ==========================================================================
    * performFrameUpdate() — BONUS UPDATE TICK
    * ==========================================================================
@@ -247,7 +256,6 @@ export class BonusPickupElement {
     this.accumulatedRotationTime += timeDeltaInSeconds;
     this.remainingLifespanDuration -= timeDeltaInSeconds;
 
-
     /* --- 1. ROTATION ANIMATION ---
      * The gem rotates on TWO axes at DIFFERENT speeds to create a complex,
      * mesmerizing tumble pattern:
@@ -260,7 +268,6 @@ export class BonusPickupElement {
     this.gemMesh.rotation.y += timeDeltaInSeconds * 2.0;
     this.gemMesh.rotation.x += timeDeltaInSeconds * 1.5;
 
-
     /* --- BOBBING ANIMATION ---
      * Math.sin() produces a smooth oscillation between -1 and +1.
      *   Frequency: accumulatedRotationTime * 4 → 4 radians/sec = ~0.64 Hz (bobs per second).
@@ -272,7 +279,6 @@ export class BonusPickupElement {
      * (up/down in the gameplay plane, not toward/away from the camera). */
     this.gemMesh.position.z = Math.sin(this.accumulatedRotationTime * 4) * 0.3;
 
-
     /* --- PULSING ANIMATION ---
      * Scale oscillates between 0.85x and 1.15x (1.0 ± 0.15):
      *   Frequency: accumulatedRotationTime * 6 → ~0.95 Hz (pulses per second).
@@ -283,7 +289,6 @@ export class BonusPickupElement {
      * Using the same value for all three creates uniform scaling. */
     const pulseFactor = 1.0 + Math.sin(this.accumulatedRotationTime * 6) * 0.15;
     this.gemMesh.scale.set(pulseFactor, pulseFactor, pulseFactor);
-
 
     /* --- 2. TIMER BAR LOGIC ---
      * The foreground plane's X-scale represents the remaining lifespan
@@ -298,9 +303,11 @@ export class BonusPickupElement {
      * transform. This is a GPU-only operation — no geometry recalculation,
      * no buffer uploads, just changing one number in the transformation
      * matrix. Extremely efficient for animated UI elements. */
-    const lifespanPercentageRemaining = Math.max(0, this.remainingLifespanDuration / this.maximumLifespanDuration);
+    const lifespanPercentageRemaining = Math.max(
+      0,
+      this.remainingLifespanDuration / this.maximumLifespanDuration,
+    );
     this.timerBarForeground.scale.x = lifespanPercentageRemaining;
-
 
     /* --- 3. EXPIRATION CHECK ---
      * When the timer reaches zero, the bonus self-destructs.
@@ -310,7 +317,6 @@ export class BonusPickupElement {
       this.initiateSelfDestructionSequence();
     }
   }
-
 
   /* ==========================================================================
    * initiateSelfDestructionSequence() — CLEANUP

@@ -16,27 +16,26 @@
   ============================================================================
 -->
 <html lang="en">
-
-<head>
-  <!-- CHARACTER ENCODING: UTF-8 is the universal standard for web documents.
+  <head>
+    <!-- CHARACTER ENCODING: UTF-8 is the universal standard for web documents.
        Without this, special characters (like ↑ ← → used in our controls list)
        could render as garbled text on some browsers. -->
-  <meta charset="UTF-8" />
+    <meta charset="UTF-8" />
 
-  <!-- FAVICON: The small icon displayed in the browser tab.
+    <!-- FAVICON: The small icon displayed in the browser tab.
        We use Vite's default SVG icon. The 'type' attribute tells the browser
        the MIME type so it knows how to decode the file. -->
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
 
-  <!-- VIEWPORT META TAG: Critical for responsive design.
+    <!-- VIEWPORT META TAG: Critical for responsive design.
        'width=device-width' tells the browser to match the screen's actual width
        rather than defaulting to a desktop-width virtual viewport (common on mobile).
        'initial-scale=1.0' prevents any default zoom. -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Asteroids 3D</title>
+    <title>Asteroids 3D</title>
 
-  <!-- =======================================================================
+    <!-- =======================================================================
        GOOGLE FONTS LOADING STRATEGY
        =======================================================================
        We load two custom fonts from Google's CDN:
@@ -58,18 +57,21 @@
        "Render text immediately using a fallback font, then swap in the custom
        font once it finishes downloading." This prevents invisible text (FOIT).
        ======================================================================= -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Numans&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Audiowide&family=Numans&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- PROJECT STYLESHEET: Our custom CSS that styles all the HTML overlay elements.
+    <!-- PROJECT STYLESHEET: Our custom CSS that styles all the HTML overlay elements.
        This is loaded after fonts so that the font-family declarations in CSS
        can reference the font names that are now being fetched. -->
-  <link rel="stylesheet" href="/src/style.css" />
-</head>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
 
-<body>
-  <!-- =======================================================================
+  <body>
+    <!-- =======================================================================
        LAYER 3: CINEMATIC SPLASH SCREEN (Start Menu)
        =======================================================================
        This is the FIRST thing the player sees. It covers the entire viewport
@@ -87,67 +89,90 @@
        clicks reach the button, while the in-game overlay uses 'pointer-events: none'
        to let clicks pass through to the 3D canvas.
        ======================================================================= -->
-  <div id="game-loading-splash-screen" class="game-loading-splash-screen">
-    <div class="splash-screen-content-wrapper">
-      <!-- GAME TITLE: Uses the 'Audiowide' font (inherited from parent's CSS).
+    <div id="game-loading-splash-screen" class="game-loading-splash-screen">
+      <div class="splash-screen-content-wrapper">
+        <!-- GAME TITLE: Uses the 'Audiowide' font (inherited from parent's CSS).
            The 'pulsing-text' class applies a CSS @keyframes animation that
            subtly scales the text up/down to create a breathing glow effect. -->
-      <h1 class="splash-screen-title-text pulsing-text">THE PINK UFO</h1>
+        <h1 class="splash-screen-title-text pulsing-text">THE PINK UFO</h1>
 
-      <!-- SCORE STATISTICS: Populated dynamically by Game.js on initialization
+        <!-- SCORE STATISTICS: Populated dynamically by Game.js on initialization
            and whenever the player returns to the splash screen.
            - 'last-session-score-value': Shows the score from the most recent game.
            - 'persistent-high-score-value': Shows the all-time best, persisted via
              the browser's localStorage API (survives page refreshes and restarts).
            - 'reset-high-score-button': Calls wipePersistentHighScoreRecords() in
              Game.js, which clears the localStorage entry after a confirm() dialog. -->
-      <div class="splash-screen-score-statistics">
-        <div class="stat-item">LAST MISSION: <span id="last-session-score-value">0</span></div>
-        <div class="stat-item">
-          PERSONAL BEST: <span id="persistent-high-score-value">0</span>
-          <button id="reset-high-score-button" class="mini-reset-button" title="Clear High Score">RESET</button>
+        <div class="splash-screen-score-statistics">
+          <div class="stat-item">
+            LAST MISSION: <span id="last-session-score-value">0</span>
+          </div>
+          <div class="stat-item">
+            PERSONAL BEST: <span id="persistent-high-score-value">0</span>
+            <button
+              id="reset-high-score-button"
+              class="mini-reset-button"
+              title="Clear High Score"
+            >
+              RESET
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- SUBTITLE: Uses CSS letter-spacing: 0.8rem for a wide, cinematic spread. -->
-      <h2 class="splash-screen-subtitle-text">ASTEROID DEFENDER</h2>
+        <!-- SUBTITLE: Uses CSS letter-spacing: 0.8rem for a wide, cinematic spread. -->
+        <h2 class="splash-screen-subtitle-text">ASTEROID DEFENDER</h2>
 
-      <!-- PRIMARY CTA BUTTON: Triggers beginActiveMission() in Game.js.
+        <!-- PRIMARY CTA BUTTON: Triggers beginActiveMission() in Game.js.
            Two input methods are supported:
            1. Click event listener attached in Game.js constructor.
            2. Spacebar keydown listener also attached in Game.js constructor.
            The '[SPACE]' hint in the label tells players about the keyboard shortcut. -->
-      <button id="begin-active-mission-button" class="premium-interactive-button">ENTER THE COSMOS [SPACE]</button>
+        <button
+          id="begin-active-mission-button"
+          class="premium-interactive-button"
+        >
+          ENTER THE COSMOS [SPACE]
+        </button>
 
-      <!-- HELP & INFO PANELS: A CSS Grid with two columns.
+        <!-- HELP & INFO PANELS: A CSS Grid with two columns.
            These are purely informational and have no JavaScript interaction. -->
-      <div class="splash-screen-info-grid">
-        <div class="info-panel-box">
-          <h3 class="info-panel-header">HOW TO PLAY</h3>
-          <!-- The 'key-cap-style' spans are styled to look like physical keyboard keys
+        <div class="splash-screen-info-grid">
+          <div class="info-panel-box">
+            <h3 class="info-panel-header">HOW TO PLAY</h3>
+            <!-- The 'key-cap-style' spans are styled to look like physical keyboard keys
                using background color, padding, border-bottom, and border-radius in CSS. -->
-          <ul class="info-panel-list">
-            <li><span class="key-cap-style">W</span> or <span class="key-cap-style">↑</span> : THRUST</li>
-            <li><span class="key-cap-style">A</span> <span class="key-cap-style">D</span> or <span
-                class="key-cap-style">←</span> <span class="key-cap-style">→</span> : ROTATE</li>
-            <li><span class="key-cap-style">SPACE</span> : DISCHARGE WEAPONS</li>
-            <li><span class="key-cap-style">R</span> : INSTANT RESTART</li>
-          </ul>
-        </div>
-        <div class="info-panel-box">
-          <h3 class="info-panel-header">ABOUT THE MISSION</h3>
-          <p class="info-panel-text">
-            A high-fidelity 3D tribute to the golden age of arcade gaming.
-            Built with <span class="highlight-text-cyan">Three.js</span> and <span
-              class="highlight-text-pink">Vite</span> as a tutorial-focused
-            demonstration of clean, modular game logic and cinematic rendering.
-          </p>
+            <ul class="info-panel-list">
+              <li>
+                <span class="key-cap-style">W</span> or
+                <span class="key-cap-style">↑</span> : THRUST
+              </li>
+              <li>
+                <span class="key-cap-style">A</span>
+                <span class="key-cap-style">D</span> or
+                <span class="key-cap-style">←</span>
+                <span class="key-cap-style">→</span> : ROTATE
+              </li>
+              <li>
+                <span class="key-cap-style">SPACE</span> : DISCHARGE WEAPONS
+              </li>
+              <li><span class="key-cap-style">R</span> : INSTANT RESTART</li>
+            </ul>
+          </div>
+          <div class="info-panel-box">
+            <h3 class="info-panel-header">ABOUT THE MISSION</h3>
+            <p class="info-panel-text">
+              A high-fidelity 3D tribute to the golden age of arcade gaming.
+              Built with <span class="highlight-text-cyan">Three.js</span> and
+              <span class="highlight-text-pink">Vite</span> as a
+              tutorial-focused demonstration of clean, modular game logic and
+              cinematic rendering.
+            </p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- =======================================================================
+    <!-- =======================================================================
        TACTICAL TUNING CONSOLE (Developer Debug Panel)
        =======================================================================
        A slide-in panel for real-time weapon parameter tuning during gameplay.
@@ -164,29 +189,57 @@
        parameters (shot speed, range, cooldown, capacity) in real-time without
        restarting the game. This panel makes balance iteration instant.
        ======================================================================= -->
-  <div id="tactical-tuning-console" class="tuning-console-container">
-    <div class="tuning-console-header">TACTICAL TUNING CONSOLE <span class="tuning-toggle-hint">[T]</span></div>
-    <div class="tuning-category-group">
-      <div class="tuning-item">
-        <label>SHOT SPEED: <span id="v_val-speed">16</span></label>
-        <input type="range" id="tuning-shot-speed" min="5" max="100" value="16">
+    <div id="tactical-tuning-console" class="tuning-console-container">
+      <div class="tuning-console-header">
+        TACTICAL TUNING CONSOLE <span class="tuning-toggle-hint">[T]</span>
       </div>
-      <div class="tuning-item">
-        <label>SHOT RANGE: <span id="v_val-range">18</span></label>
-        <input type="range" id="tuning-shot-range" min="1" max="100" value="18">
-      </div>
-      <div class="tuning-item">
-        <label>FIRE RATE (COOLDOWN): <span id="v_val-cooldown">900</span>ms</label>
-        <input type="range" id="tuning-shot-cooldown" min="50" max="2000" value="900">
-      </div>
-      <div class="tuning-item">
-        <label>MAX SHOTS: <span id="v_val-limit">1</span></label>
-        <input type="range" id="tuning-on-screen-limit" min="1" max="15" value="1">
+      <div class="tuning-category-group">
+        <div class="tuning-item">
+          <label>SHOT SPEED: <span id="v_val-speed">16</span></label>
+          <input
+            type="range"
+            id="tuning-shot-speed"
+            min="5"
+            max="100"
+            value="16"
+          />
+        </div>
+        <div class="tuning-item">
+          <label>SHOT RANGE: <span id="v_val-range">18</span></label>
+          <input
+            type="range"
+            id="tuning-shot-range"
+            min="1"
+            max="100"
+            value="18"
+          />
+        </div>
+        <div class="tuning-item">
+          <label
+            >FIRE RATE (COOLDOWN): <span id="v_val-cooldown">900</span>ms</label
+          >
+          <input
+            type="range"
+            id="tuning-shot-cooldown"
+            min="50"
+            max="2000"
+            value="900"
+          />
+        </div>
+        <div class="tuning-item">
+          <label>MAX SHOTS: <span id="v_val-limit">1</span></label>
+          <input
+            type="range"
+            id="tuning-on-screen-limit"
+            min="1"
+            max="15"
+            value="1"
+          />
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- =======================================================================
+    <!-- =======================================================================
        LAYER 2: IN-GAME HUD (Heads-Up Display)
        =======================================================================
        This overlay is hidden (display: none) on page load and made visible
@@ -202,28 +255,41 @@
        1. Score & Ammo counters (top-left, positioned via CSS absolute).
        2. Game Over panel (centered, shown/hidden via display:block/none).
        ======================================================================= -->
-  <div id="game-heads-up-display-overlay" class="game-ui-overlay-container" style="display: none;">
-    <div id="game-current-stats-row" class="game-current-stats-row">
-      <!-- Score and weapon stats are updated by Game.js via direct DOM manipulation
+    <div
+      id="game-heads-up-display-overlay"
+      class="game-ui-overlay-container"
+      style="display: none"
+    >
+      <div id="game-current-stats-row" class="game-current-stats-row">
+        <!-- Score and weapon stats are updated by Game.js via direct DOM manipulation
            (document.getElementById().innerText = ...) for maximum performance.
            React/Vue-style reactivity would be overkill for a game HUD. -->
-      <div id="game-current-score-display" class="game-current-score-display">Score: 0</div>
-      <div id="game-current-ammo-display" class="game-current-ammo-display">Max Shots: 3</div>
-    </div>
+        <div id="game-current-score-display" class="game-current-score-display">
+          Score: 0
+        </div>
+        <div id="game-current-ammo-display" class="game-current-ammo-display">
+          Max Shots: 3
+        </div>
+      </div>
 
-    <!-- GAME OVER PANEL: Initially hidden (CSS display: none).
+      <!-- GAME OVER PANEL: Initially hidden (CSS display: none).
          Shown by Game.js transitionToGameOverState() when the player dies.
          Contains a countdown timer that auto-returns to splash screen. -->
-    <div id="game-over-notification-panel" class="game-over-notification-panel">
-      <h1 class="game-over-status-heading">GAME OVER</h1>
-      <!-- This <p> tag's text content is dynamically updated every frame
+      <div
+        id="game-over-notification-panel"
+        class="game-over-notification-panel"
+      >
+        <h1 class="game-over-status-heading">GAME OVER</h1>
+        <!-- This <p> tag's text content is dynamically updated every frame
            during game-over state to show the countdown: "Returning to base in Xs..." -->
-      <p id="game-over-timeout-info" class="game-restart-action-instruction">Returning to base in 5s...</p>
-      <p class="game-restart-action-instruction">Press R to Restart Now</p>
+        <p id="game-over-timeout-info" class="game-restart-action-instruction">
+          Returning to base in 5s...
+        </p>
+        <p class="game-restart-action-instruction">Press R to Restart Now</p>
+      </div>
     </div>
-  </div>
 
-  <!-- =======================================================================
+    <!-- =======================================================================
        LAYER 1: THREE.JS CANVAS MOUNT POINT
        =======================================================================
        The <div id="app"> serves as the mount point where Three.js appends
@@ -234,13 +300,12 @@
        all 3D rendering output to it using WebGL2 (or WebGL1 fallback).
        The canvas sits behind all HTML overlays due to lower z-index.
        ======================================================================= -->
-  <div id="app"></div>
+    <div id="app"></div>
 
-  <!-- MODULE ENTRY POINT: Vite uses ES module syntax (type="module") to enable
+    <!-- MODULE ENTRY POINT: Vite uses ES module syntax (type="module") to enable
        tree-shaking, hot module replacement (HMR) during development, and
        automatic code splitting during production builds.
        The '/src/main.js' path is resolved by Vite's dev server at runtime. -->
-  <script type="module" src="/src/main.js"></script>
-</body>
-
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>

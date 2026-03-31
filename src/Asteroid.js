@@ -40,8 +40,7 @@
  *      the game awards a bonus "Family Wipe" reward.
  * ============================================================================ */
 
-import * as THREE from 'three';
-
+import * as THREE from "three";
 
 /**
  * Represents a hazardous celestial body (asteroid) in the game world.
@@ -67,7 +66,15 @@ export class CelestialHazardousAsteroid {
    *   Child asteroids inherit this from their parent. New root asteroids generate
    *   a random ID (e.g., "lin_a7bx3k2f9").
    */
-  constructor(parentGameRenderingScene, gameplayAreaBoundaryLimits, specificSpawnCoordinate = null, relativeHazardSizeCategory = 3, asteroidColor = 0x888888, asteroidHealth = 1, lineageId = "") {
+  constructor(
+    parentGameRenderingScene,
+    gameplayAreaBoundaryLimits,
+    specificSpawnCoordinate = null,
+    relativeHazardSizeCategory = 3,
+    asteroidColor = 0x888888,
+    asteroidHealth = 1,
+    lineageId = "",
+  ) {
     this.parentGameRenderingScene = parentGameRenderingScene;
     this.gameplayAreaBoundaryLimits = gameplayAreaBoundaryLimits;
     this.relativeHazardSizeCategory = relativeHazardSizeCategory;
@@ -81,7 +88,8 @@ export class CelestialHazardousAsteroid {
      * (using digits 0-9 and letters a-z), then .substr(2, 9) extracts 9
      * characters after the "0." prefix. This creates a short, unique-enough
      * identifier for tracking asteroid family trees. */
-    this.lineageId = lineageId || `lin_${Math.random().toString(36).substr(2, 9)}`;
+    this.lineageId =
+      lineageId || `lin_${Math.random().toString(36).substr(2, 9)}`;
 
     /* Hit flash timer: counts down to zero after a hit.
      * While > 0, the asteroid's emissive channel shows white. */
@@ -91,7 +99,6 @@ export class CelestialHazardousAsteroid {
      * Category 3 → radius 4.5, Category 2 → radius 3.0, Category 1 → radius 1.5 */
     const physicalRadiusBasedOnSizeCategory = relativeHazardSizeCategory * 1.5;
     this.physicalCollisionRadius = physicalRadiusBasedOnSizeCategory;
-
 
     /* =====================================================================
      * GEOMETRY CREATION — ICOSAHEDRON
@@ -111,8 +118,10 @@ export class CelestialHazardousAsteroid {
      *   - The icosahedron's near-uniform face distribution makes procedural
      *     deformation look more natural — no polar distortion.
      * ===================================================================== */
-    const asteroidVisualGeometry = new THREE.IcosahedronGeometry(physicalRadiusBasedOnSizeCategory, 0);
-
+    const asteroidVisualGeometry = new THREE.IcosahedronGeometry(
+      physicalRadiusBasedOnSizeCategory,
+      0,
+    );
 
     /* =====================================================================
      * PROCEDURAL VERTEX DEFORMATION
@@ -143,26 +152,26 @@ export class CelestialHazardousAsteroid {
      * absolute terms, which naturally creates larger dents and bumps on
      * the outer surface while keeping small-scale details proportional.
      * ===================================================================== */
-    const geometryVertexPositionAttribute = asteroidVisualGeometry.attributes.position;
+    const geometryVertexPositionAttribute =
+      asteroidVisualGeometry.attributes.position;
     for (let i = 0; i < geometryVertexPositionAttribute.count; i++) {
-        const x_coord = geometryVertexPositionAttribute.getX(i);
-        const y_coord = geometryVertexPositionAttribute.getY(i);
-        const z_coord = geometryVertexPositionAttribute.getZ(i);
+      const x_coord = geometryVertexPositionAttribute.getX(i);
+      const y_coord = geometryVertexPositionAttribute.getY(i);
+      const z_coord = geometryVertexPositionAttribute.getZ(i);
 
-        /* Random displacement factor: range [0.8, 1.2]
-         * Math.random() returns [0, 1), so:
-         *   Math.random() * 0.4 → [0, 0.4)
-         *   - 0.2 → [-0.2, 0.2)
-         *   + 1 → [0.8, 1.2) */
-        const displacementNoiseFactor = 1 + (Math.random() * 0.4 - 0.2);
-        geometryVertexPositionAttribute.setXYZ(
-          i,
-          x_coord * displacementNoiseFactor,
-          y_coord * displacementNoiseFactor,
-          z_coord * displacementNoiseFactor
-        );
+      /* Random displacement factor: range [0.8, 1.2]
+       * Math.random() returns [0, 1), so:
+       *   Math.random() * 0.4 → [0, 0.4)
+       *   - 0.2 → [-0.2, 0.2)
+       *   + 1 → [0.8, 1.2) */
+      const displacementNoiseFactor = 1 + (Math.random() * 0.4 - 0.2);
+      geometryVertexPositionAttribute.setXYZ(
+        i,
+        x_coord * displacementNoiseFactor,
+        y_coord * displacementNoiseFactor,
+        z_coord * displacementNoiseFactor,
+      );
     }
-
 
     /* =====================================================================
      * NORMAL RECALCULATION
@@ -189,7 +198,6 @@ export class CelestialHazardousAsteroid {
      * ===================================================================== */
     asteroidVisualGeometry.computeVertexNormals();
 
-
     /* =====================================================================
      * MATERIAL SETUP
      * =====================================================================
@@ -208,11 +216,13 @@ export class CelestialHazardousAsteroid {
     const asteroidVisualMaterial = new THREE.MeshStandardMaterial({
       color: this.asteroidColor,
       roughness: 0.8,
-      flatShading: true
+      flatShading: true,
     });
 
-    this.asteroidRenderingMesh = new THREE.Mesh(asteroidVisualGeometry, asteroidVisualMaterial);
-
+    this.asteroidRenderingMesh = new THREE.Mesh(
+      asteroidVisualGeometry,
+      asteroidVisualMaterial,
+    );
 
     /* =====================================================================
      * SPAWN POSITION
@@ -242,37 +252,40 @@ export class CelestialHazardousAsteroid {
       const randomlySelectedScreenEdge = Math.floor(Math.random() * 4);
       const limits = this.gameplayAreaBoundaryLimits;
 
-      if (randomlySelectedScreenEdge === 0) { // LEFT EDGE
-          /* X = left boundary, Y = random position along the full height */
-          this.asteroidRenderingMesh.position.set(
-            limits.left,
-            Math.random() * (limits.top - limits.bottom) + limits.bottom,
-            0  // Z = 0 (on the gameplay plane)
-          );
-      } else if (randomlySelectedScreenEdge === 1) { // RIGHT EDGE
-          this.asteroidRenderingMesh.position.set(
-            limits.right,
-            Math.random() * (limits.top - limits.bottom) + limits.bottom,
-            0
-          );
-      } else if (randomlySelectedScreenEdge === 2) { // BOTTOM EDGE
-          this.asteroidRenderingMesh.position.set(
-            Math.random() * (limits.right - limits.left) + limits.left,
-            limits.bottom,
-            0
-          );
-      } else { // TOP EDGE
-          this.asteroidRenderingMesh.position.set(
-            Math.random() * (limits.right - limits.left) + limits.left,
-            limits.top,
-            0
-          );
+      if (randomlySelectedScreenEdge === 0) {
+        // LEFT EDGE
+        /* X = left boundary, Y = random position along the full height */
+        this.asteroidRenderingMesh.position.set(
+          limits.left,
+          Math.random() * (limits.top - limits.bottom) + limits.bottom,
+          0, // Z = 0 (on the gameplay plane)
+        );
+      } else if (randomlySelectedScreenEdge === 1) {
+        // RIGHT EDGE
+        this.asteroidRenderingMesh.position.set(
+          limits.right,
+          Math.random() * (limits.top - limits.bottom) + limits.bottom,
+          0,
+        );
+      } else if (randomlySelectedScreenEdge === 2) {
+        // BOTTOM EDGE
+        this.asteroidRenderingMesh.position.set(
+          Math.random() * (limits.right - limits.left) + limits.left,
+          limits.bottom,
+          0,
+        );
+      } else {
+        // TOP EDGE
+        this.asteroidRenderingMesh.position.set(
+          Math.random() * (limits.right - limits.left) + limits.left,
+          limits.top,
+          0,
+        );
       }
     }
 
     /* Add the mesh to the scene so it becomes visible. */
     this.parentGameRenderingScene.add(this.asteroidRenderingMesh);
-
 
     /* =====================================================================
      * MOVEMENT (Drift Velocity)
@@ -299,11 +312,10 @@ export class CelestialHazardousAsteroid {
     const calculatedDriftSpeedScale = (4 - relativeHazardSizeCategory) * 5;
     const randomizedInitialHeadingAngle = Math.random() * Math.PI * 2;
     this.currentLinearVelocityVector = new THREE.Vector3(
-        Math.cos(randomizedInitialHeadingAngle) * calculatedDriftSpeedScale,
-        Math.sin(randomizedInitialHeadingAngle) * calculatedDriftSpeedScale,
-        0
+      Math.cos(randomizedInitialHeadingAngle) * calculatedDriftSpeedScale,
+      Math.sin(randomizedInitialHeadingAngle) * calculatedDriftSpeedScale,
+      0,
     );
-
 
     /* =====================================================================
      * TUMBLING ROTATION
@@ -317,14 +329,13 @@ export class CelestialHazardousAsteroid {
      * which is a convenient shorthand for scaling random values.
      * ===================================================================== */
     this.internalTumblingRotationSpeedVector = new THREE.Vector3(
-      Math.random() * 2 - 1,    // Range: [-1, +1] before scaling
+      Math.random() * 2 - 1, // Range: [-1, +1] before scaling
       Math.random() * 2 - 1,
-      Math.random() * 2 - 1
+      Math.random() * 2 - 1,
     ).multiplyScalar(0.5);
 
     this.isCurrentlyActiveAndValid = true;
   }
-
 
   /* ==========================================================================
    * performFrameUpdate() — ASTEROID UPDATE TICK
@@ -345,10 +356,10 @@ export class CelestialHazardousAsteroid {
      * setHex(0x000000) = black = no emissive contribution = normal appearance.
      * setHex(0xffffff) = white = maximum emissive = fully bright flash. */
     if (this.hitFlashTimer > 0) {
-        this.hitFlashTimer -= timeDeltaInSeconds;
-        if (this.hitFlashTimer <= 0) {
-            this.asteroidRenderingMesh.material.emissive.setHex(0x000000);
-        }
+      this.hitFlashTimer -= timeDeltaInSeconds;
+      if (this.hitFlashTimer <= 0) {
+        this.asteroidRenderingMesh.material.emissive.setHex(0x000000);
+      }
     }
 
     /* --- POSITION UPDATE ---
@@ -357,16 +368,19 @@ export class CelestialHazardousAsteroid {
      * object allocation (no .clone() or new Vector3() needed). */
     this.asteroidRenderingMesh.position.addScaledVector(
       this.currentLinearVelocityVector,
-      timeDeltaInSeconds
+      timeDeltaInSeconds,
     );
 
     /* --- ROTATION UPDATE ---
      * Each axis rotates independently at the pre-calculated speed.
      * The combination of three independent rotations on different axes
      * at different speeds creates the complex tumbling motion. */
-    this.asteroidRenderingMesh.rotation.x += this.internalTumblingRotationSpeedVector.x * timeDeltaInSeconds;
-    this.asteroidRenderingMesh.rotation.y += this.internalTumblingRotationSpeedVector.y * timeDeltaInSeconds;
-    this.asteroidRenderingMesh.rotation.z += this.internalTumblingRotationSpeedVector.z * timeDeltaInSeconds;
+    this.asteroidRenderingMesh.rotation.x +=
+      this.internalTumblingRotationSpeedVector.x * timeDeltaInSeconds;
+    this.asteroidRenderingMesh.rotation.y +=
+      this.internalTumblingRotationSpeedVector.y * timeDeltaInSeconds;
+    this.asteroidRenderingMesh.rotation.z +=
+      this.internalTumblingRotationSpeedVector.z * timeDeltaInSeconds;
 
     /* --- SCREEN WRAPPING ---
      * Identical to Player.js and Bullet.js wrapping logic.
@@ -377,13 +391,16 @@ export class CelestialHazardousAsteroid {
     const pos = this.asteroidRenderingMesh.position;
     const boundaryBuffer = this.physicalCollisionRadius;
 
-    if (pos.x > limits.right + boundaryBuffer) pos.x = limits.left - boundaryBuffer;
-    else if (pos.x < limits.left - boundaryBuffer) pos.x = limits.right + boundaryBuffer;
+    if (pos.x > limits.right + boundaryBuffer)
+      pos.x = limits.left - boundaryBuffer;
+    else if (pos.x < limits.left - boundaryBuffer)
+      pos.x = limits.right + boundaryBuffer;
 
-    if (pos.y > limits.top + boundaryBuffer) pos.y = limits.bottom - boundaryBuffer;
-    else if (pos.y < limits.bottom - boundaryBuffer) pos.y = limits.top + boundaryBuffer;
+    if (pos.y > limits.top + boundaryBuffer)
+      pos.y = limits.bottom - boundaryBuffer;
+    else if (pos.y < limits.bottom - boundaryBuffer)
+      pos.y = limits.top + boundaryBuffer;
   }
-
 
   /* ==========================================================================
    * takeDamage() — DAMAGE HANDLER
@@ -410,7 +427,6 @@ export class CelestialHazardousAsteroid {
 
     return this.currentHealth <= 0;
   }
-
 
   /* ==========================================================================
    * initiateDecompositionSequence() — CLEANUP

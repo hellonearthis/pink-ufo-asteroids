@@ -30,8 +30,7 @@
  *      inherits all position, rotation, and scale changes.
  * ============================================================================ */
 
-import * as THREE from 'three';
-
+import * as THREE from "three";
 
 /**
  * Represents a single projectile discharged from the spacecraft.
@@ -50,10 +49,17 @@ export class ProjectileParticle {
    * @param {number} maxRange - Maximum travel distance in units before self-destruction (upgradeable).
    * @param {THREE.Vector3} initialInertiaVector - The ship's velocity at fire time (momentum transfer).
    */
-  constructor(parentGameRenderingScene, initialStartingPosition, ejectionDirectionVector, gameplayAreaBoundaryLimits, travelSpeed = 40.0, maxRange = 50.0, initialInertiaVector = new THREE.Vector3(0, 0, 0)) {
+  constructor(
+    parentGameRenderingScene,
+    initialStartingPosition,
+    ejectionDirectionVector,
+    gameplayAreaBoundaryLimits,
+    travelSpeed = 40.0,
+    maxRange = 50.0,
+    initialInertiaVector = new THREE.Vector3(0, 0, 0),
+  ) {
     this.parentGameRenderingScene = parentGameRenderingScene;
     this.gameplayAreaBoundaryLimits = gameplayAreaBoundaryLimits;
-
 
     /* =====================================================================
      * 1a. BULLET GEOMETRY & MATERIAL
@@ -78,25 +84,28 @@ export class ProjectileParticle {
 
     /* Color palette — five distinct shades of pink, from soft to vivid. */
     const pinkVariants = [0xffb6c1, 0xffc0cb, 0xff69b4, 0xff1493, 0xdb7093];
-    const pickedPink = pinkVariants[Math.floor(Math.random() * pinkVariants.length)];
+    const pickedPink =
+      pinkVariants[Math.floor(Math.random() * pinkVariants.length)];
 
     const projectileVisualMaterial = new THREE.MeshStandardMaterial({
-        color: pickedPink,
-        emissive: pickedPink,        // Emissive = same color = the bullet glows its own color.
-                                     // This ensures visibility even in dark areas of the scene.
-        emissiveIntensity: 0.6,
-        roughness: 0.1,              // Very smooth surface → sharp specular highlights
-        metalness: 0.7,              // High metalness → reflects its own color (like a gem)
-        flatShading: true            /* FLAT SHADING forces each polygon face to use a single
-                                      * normal vector (perpendicular to the face) instead of
-                                      * interpolating normals across the face (smooth shading).
-                                      * This creates hard edges between faces, making the low-poly
-                                      * geometry look intentionally faceted rather than poorly
-                                      * approximating a smooth surface. */
+      color: pickedPink,
+      emissive: pickedPink, // Emissive = same color = the bullet glows its own color.
+      // This ensures visibility even in dark areas of the scene.
+      emissiveIntensity: 0.6,
+      roughness: 0.1, // Very smooth surface → sharp specular highlights
+      metalness: 0.7, // High metalness → reflects its own color (like a gem)
+      flatShading: true /* FLAT SHADING forces each polygon face to use a single
+       * normal vector (perpendicular to the face) instead of
+       * interpolating normals across the face (smooth shading).
+       * This creates hard edges between faces, making the low-poly
+       * geometry look intentionally faceted rather than poorly
+       * approximating a smooth surface. */,
     });
 
-    this.projectileRenderingMesh = new THREE.Mesh(projectileVisualGeometry, projectileVisualMaterial);
-
+    this.projectileRenderingMesh = new THREE.Mesh(
+      projectileVisualGeometry,
+      projectileVisualMaterial,
+    );
 
     /* =====================================================================
      * 1b. EDGE WIREFRAME (Outline Effect)
@@ -123,18 +132,25 @@ export class ProjectileParticle {
      * Shifts the color in HSL space. We offset lightness by +0.2 (20% brighter)
      * to create the highlight target without changing the hue or saturation.
      * ===================================================================== */
-    const bulletEdgesGeometry = new THREE.EdgesGeometry(projectileVisualGeometry);
+    const bulletEdgesGeometry = new THREE.EdgesGeometry(
+      projectileVisualGeometry,
+    );
 
     this.bulletBaseColor = new THREE.Color(pickedPink);
-    this.bulletHighlightColor = this.bulletBaseColor.clone().offsetHSL(0, 0, 0.2);
+    this.bulletHighlightColor = this.bulletBaseColor
+      .clone()
+      .offsetHSL(0, 0, 0.2);
 
     this.bulletEdgesMaterial = new THREE.LineBasicMaterial({
-        color: this.bulletBaseColor,
-        transparent: true,
-        opacity: 0.8
+      color: this.bulletBaseColor,
+      transparent: true,
+      opacity: 0.8,
     });
 
-    const bulletEdgesMesh = new THREE.LineSegments(bulletEdgesGeometry, this.bulletEdgesMaterial);
+    const bulletEdgesMesh = new THREE.LineSegments(
+      bulletEdgesGeometry,
+      this.bulletEdgesMaterial,
+    );
 
     /* PARENT-CHILD RELATIONSHIP:
      * By adding the edges mesh as a CHILD of the main projectile mesh,
@@ -143,7 +159,6 @@ export class ProjectileParticle {
      * When we move the projectile, the edges move with it.
      * We don't need to manually synchronize their transforms. */
     this.projectileRenderingMesh.add(bulletEdgesMesh);
-
 
     /* =====================================================================
      * INITIAL TRANSFORM SETUP
@@ -155,7 +170,7 @@ export class ProjectileParticle {
     this.projectileRenderingMesh.rotation.set(
       Math.random() * 5,
       Math.random() * 5,
-      Math.random() * 5
+      Math.random() * 5,
     );
 
     /* Copy the spawn position (which is at the tip of the player's ship). */
@@ -163,7 +178,6 @@ export class ProjectileParticle {
 
     /* Add the bullet to the scene so it becomes visible. */
     this.parentGameRenderingScene.add(this.projectileRenderingMesh);
-
 
     /* =====================================================================
      * TUMBLING ROTATION
@@ -173,11 +187,10 @@ export class ProjectileParticle {
      * gives fast, noticeable rotation without being nauseating.
      * ===================================================================== */
     this.internalTumblingRotationVelocity = new THREE.Vector3(
-        Math.random() * 10 - 5,     // Range: -5 to +5 radians/sec on X
-        Math.random() * 10 - 5,     // Range: -5 to +5 radians/sec on Y
-        Math.random() * 10 - 5      // Range: -5 to +5 radians/sec on Z
+      Math.random() * 10 - 5, // Range: -5 to +5 radians/sec on X
+      Math.random() * 10 - 5, // Range: -5 to +5 radians/sec on Y
+      Math.random() * 10 - 5, // Range: -5 to +5 radians/sec on Z
     );
-
 
     /* =====================================================================
      * VELOCITY CALCULATION (Newtonian Momentum Transfer)
@@ -200,9 +213,11 @@ export class ProjectileParticle {
      * - Shooting while moving backward: bullets go SLOWER (or even backward
      *   if the ship is moving faster than the bullet speed).
      * ===================================================================== */
-    this.currentLinearVelocityVector = ejectionDirectionVector.clone().normalize().multiplyScalar(travelSpeed);
+    this.currentLinearVelocityVector = ejectionDirectionVector
+      .clone()
+      .normalize()
+      .multiplyScalar(travelSpeed);
     this.currentLinearVelocityVector.add(initialInertiaVector);
-
 
     /* =====================================================================
      * RANGE TRACKING (Distance-Based Lifespan)
@@ -219,9 +234,8 @@ export class ProjectileParticle {
 
     /* State and collision properties. */
     this.isCurrentlyActiveAndValid = true;
-    this.physicalCollisionRadius = 0.5;   // Used by Game.js for bullet↔asteroid collision checks
+    this.physicalCollisionRadius = 0.5; // Used by Game.js for bullet↔asteroid collision checks
   }
-
 
   /* ==========================================================================
    * performFrameUpdate() — BULLET UPDATE TICK
@@ -235,15 +249,16 @@ export class ProjectileParticle {
      * The Game.js loop removes inactive bullets from the array after this call. */
     if (!this.isCurrentlyActiveAndValid) return;
 
-
     /* --- 1. UPDATE ROTATION (Tumbling Animation) ---
      * Each axis rotates at its own independent speed, creating complex
      * tumbling motion that looks natural and unpredictable.
      * Multiply by deltaTime for frame-rate independent animation speed. */
-    this.projectileRenderingMesh.rotation.x += this.internalTumblingRotationVelocity.x * timeDeltaInSeconds;
-    this.projectileRenderingMesh.rotation.y += this.internalTumblingRotationVelocity.y * timeDeltaInSeconds;
-    this.projectileRenderingMesh.rotation.z += this.internalTumblingRotationVelocity.z * timeDeltaInSeconds;
-
+    this.projectileRenderingMesh.rotation.x +=
+      this.internalTumblingRotationVelocity.x * timeDeltaInSeconds;
+    this.projectileRenderingMesh.rotation.y +=
+      this.internalTumblingRotationVelocity.y * timeDeltaInSeconds;
+    this.projectileRenderingMesh.rotation.z +=
+      this.internalTumblingRotationVelocity.z * timeDeltaInSeconds;
 
     /* --- 1.5. EDGE COLOR CYCLING ---
      * The edge wireframe oscillates between the base pink color and a
@@ -256,9 +271,11 @@ export class ProjectileParticle {
      *
      * The Math.random() in the sine input adds slight per-frame randomness,
      * making the shimmer feel more organic than a perfectly smooth oscillation. */
-    const colorPulse = Math.sin(this.currentTravelDistance * 0.5 + Math.random()) * 0.5 + 0.5;
-    this.bulletEdgesMaterial.color.copy(this.bulletBaseColor).lerp(this.bulletHighlightColor, colorPulse);
-
+    const colorPulse =
+      Math.sin(this.currentTravelDistance * 0.5 + Math.random()) * 0.5 + 0.5;
+    this.bulletEdgesMaterial.color
+      .copy(this.bulletBaseColor)
+      .lerp(this.bulletHighlightColor, colorPulse);
 
     /* --- 2. UPDATE POSITION ---
      * Calculate the displacement vector for this specific frame.
@@ -269,9 +286,10 @@ export class ProjectileParticle {
      * shrinking the velocity vector each frame.
      *
      * position.add() then adds this displacement to the current position. */
-    const displacementThisFrame = this.currentLinearVelocityVector.clone().multiplyScalar(timeDeltaInSeconds);
+    const displacementThisFrame = this.currentLinearVelocityVector
+      .clone()
+      .multiplyScalar(timeDeltaInSeconds);
     this.projectileRenderingMesh.position.add(displacementThisFrame);
-
 
     /* --- 3. TRACK DISTANCE ---
      * Vector3.length() returns the Euclidean length of the vector
@@ -279,16 +297,14 @@ export class ProjectileParticle {
      * this frame, accounting for diagonal movement. */
     this.currentTravelDistance += displacementThisFrame.length();
 
-
     /* --- 4. RANGE CHECK ---
      * When total distance traveled exceeds the configured maximum,
      * the bullet expires. This prevents bullets from orbiting the
      * screen indefinitely due to screen wrapping. */
     if (this.currentTravelDistance >= this.maxTravelDistance) {
       this.initiateSelfDestructionSequence();
-      return;   // Skip screen wrapping since the bullet is being removed
+      return; // Skip screen wrapping since the bullet is being removed
     }
-
 
     /* --- 5. SCREEN WRAPPING ---
      * Identical logic to the player ship: when the bullet crosses a
@@ -304,7 +320,6 @@ export class ProjectileParticle {
     if (pos.y > limits.top) pos.y = limits.bottom;
     else if (pos.y < limits.bottom) pos.y = limits.top;
   }
-
 
   /* ==========================================================================
    * initiateSelfDestructionSequence() — CLEANUP

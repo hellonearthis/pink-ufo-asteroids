@@ -22,9 +22,8 @@
  *   - Code splitting: Production builds can be split into optimized chunks.
  * ============================================================================ */
 
-import * as THREE from 'three';
-import { PrimaryGameLogicController } from './Game.js';
-
+import * as THREE from "three";
+import { PrimaryGameLogicController } from "./Game.js";
 
 /* ==========================================================================
  * STEP 1: SCENE SETUP
@@ -58,7 +57,6 @@ const primaryRenderingScene = new THREE.Scene();
  * depths of outer space. Pure black (0x000000) would make dark objects
  * invisible, so this slight tint preserves silhouette visibility. */
 primaryRenderingScene.background = new THREE.Color(0x050510);
-
 
 /* ==========================================================================
  * STEP 2: CAMERA CONFIGURATION
@@ -96,10 +94,10 @@ primaryRenderingScene.background = new THREE.Color(0x050510);
  * positioned high on the Z-axis looking down at (0, 0, 0).
  * ========================================================================== */
 const primaryPerspectiveCamera = new THREE.PerspectiveCamera(
-  75,                                    // FOV in degrees
+  75, // FOV in degrees
   window.innerWidth / window.innerHeight, // Aspect ratio
-  0.1,                                   // Near clipping plane
-  1000                                   // Far clipping plane
+  0.1, // Near clipping plane
+  1000, // Far clipping plane
 );
 
 /* Position the camera 60 units along the positive Z-axis.
@@ -108,7 +106,6 @@ const primaryPerspectiveCamera = new THREE.PerspectiveCamera(
  * The Z distance directly affects how much of the play area is visible —
  * moving the camera further back (higher Z) shows more of the world. */
 primaryPerspectiveCamera.position.z = 60;
-
 
 /* ==========================================================================
  * STEP 3: RENDERER INITIALIZATION
@@ -133,7 +130,9 @@ primaryPerspectiveCamera.position.z = 60;
  *   For a game with visible polygon edges (like our low-poly asteroids),
  *   this is essential.
  * ========================================================================== */
-const primaryWebGLGraphicsRenderer = new THREE.WebGLRenderer({ antialias: true });
+const primaryWebGLGraphicsRenderer = new THREE.WebGLRenderer({
+  antialias: true,
+});
 
 /* Set the renderer's output resolution to match the browser window.
  * This creates a <canvas> element internally with these pixel dimensions.
@@ -152,8 +151,9 @@ primaryWebGLGraphicsRenderer.setSize(window.innerWidth, window.innerHeight);
  * Keeping the canvas inside a dedicated container makes it easier to
  * manage the DOM hierarchy — our HTML overlays (splash screen, HUD)
  * are siblings of this div, not children of the canvas. */
-document.getElementById('app').appendChild(primaryWebGLGraphicsRenderer.domElement);
-
+document
+  .getElementById("app")
+  .appendChild(primaryWebGLGraphicsRenderer.domElement);
 
 /* ==========================================================================
  * STEP 4: LIGHTING SETUP
@@ -190,7 +190,6 @@ const directionalSolarLightSource = new THREE.DirectionalLight(0xffffff, 1.5);
 directionalSolarLightSource.position.set(10, 20, 30);
 primaryRenderingScene.add(directionalSolarLightSource);
 
-
 /* ==========================================================================
  * STEP 5: RESPONSIVE VIEWPORT HANDLING
  * ==========================================================================
@@ -209,12 +208,11 @@ primaryRenderingScene.add(directionalSolarLightSource);
  *    (too large). setSize() updates both the canvas CSS dimensions
  *    AND the WebGL viewport.
  * ========================================================================== */
-window.addEventListener('resize', () => {
-    primaryPerspectiveCamera.aspect = window.innerWidth / window.innerHeight;
-    primaryPerspectiveCamera.updateProjectionMatrix();
-    primaryWebGLGraphicsRenderer.setSize(window.innerWidth, window.innerHeight);
+window.addEventListener("resize", () => {
+  primaryPerspectiveCamera.aspect = window.innerWidth / window.innerHeight;
+  primaryPerspectiveCamera.updateProjectionMatrix();
+  primaryWebGLGraphicsRenderer.setSize(window.innerWidth, window.innerHeight);
 });
-
 
 /* ==========================================================================
  * STEP 6: GAME ENGINE INITIALIZATION
@@ -234,9 +232,8 @@ window.addEventListener('resize', () => {
  * ========================================================================== */
 const activeGameLogicEngine = new PrimaryGameLogicController(
   primaryRenderingScene,
-  primaryPerspectiveCamera
+  primaryPerspectiveCamera,
 );
-
 
 /* ==========================================================================
  * STEP 7: HIGH-PRECISION GAME CLOCK
@@ -256,7 +253,6 @@ const activeGameLogicEngine = new PrimaryGameLogicController(
  * On a 60fps display, this is approximately 0.01667 seconds (~16.67ms).
  * ========================================================================== */
 const highPrecisionGameTimingClock = new THREE.Clock();
-
 
 /* ==========================================================================
  * STEP 8: THE MAIN ANIMATION LOOP
@@ -302,7 +298,8 @@ function primaryExecutionAnimationLoop() {
   /* Get the time elapsed since the last frame in SECONDS.
    * First call returns ~0 (or a very small value).
    * Subsequent calls return the actual frame interval. */
-  const timeElapsedInSecondsSinceLastFrame = highPrecisionGameTimingClock.getDelta();
+  const timeElapsedInSecondsSinceLastFrame =
+    highPrecisionGameTimingClock.getDelta();
 
   /* GAME LOGIC UPDATE:
    * This single call cascades through the entire game engine:
@@ -310,14 +307,19 @@ function primaryExecutionAnimationLoop() {
    *   → Entity updates (asteroids, bullets, bonuses movement/animation)
    *   → Collision detection (bullet↔asteroid, player↔asteroid, player↔bonus)
    *   → Game state transitions (score updates, game-over, wave spawning) */
-  activeGameLogicEngine.processGameLogicFrameUpdate(timeElapsedInSecondsSinceLastFrame);
+  activeGameLogicEngine.processGameLogicFrameUpdate(
+    timeElapsedInSecondsSinceLastFrame,
+  );
 
   /* RENDER THE FRAME:
    * renderer.render(scene, camera) is the final step that produces pixels.
    * It traverses the entire scene graph, culls invisible objects, sorts
    * transparent objects back-to-front, and issues GPU draw calls.
    * The result is written to the <canvas> element in the DOM. */
-  primaryWebGLGraphicsRenderer.render(primaryRenderingScene, primaryPerspectiveCamera);
+  primaryWebGLGraphicsRenderer.render(
+    primaryRenderingScene,
+    primaryPerspectiveCamera,
+  );
 }
 
 /* BOOTSTRAP: Start the loop for the first time.

@@ -32,15 +32,14 @@
  *   Both false                            → PLAYING state
  * ============================================================================ */
 
-import * as THREE from 'three';
-import { ControlledPlayerSpacecraft } from './Player.js';
-import { ProjectileParticle } from './Bullet.js';
-import { CelestialHazardousAsteroid } from './Asteroid.js';
-import { KeyboardInputStateTracker } from './InputManager.js';
-import { BonusPickupElement } from './Bonus.js';
-import { TacticalBalanceUI } from './BalanceUI.js';
-import { SoundManager } from './SoundManager.js';
-
+import * as THREE from "three";
+import { ControlledPlayerSpacecraft } from "./Player.js";
+import { ProjectileParticle } from "./Bullet.js";
+import { CelestialHazardousAsteroid } from "./Asteroid.js";
+import { KeyboardInputStateTracker } from "./InputManager.js";
+import { BonusPickupElement } from "./Bonus.js";
+import { TacticalBalanceUI } from "./BalanceUI.js";
+import { SoundManager } from "./SoundManager.js";
 
 export class PrimaryGameLogicController {
   /**
@@ -71,7 +70,7 @@ export class PrimaryGameLogicController {
      * Pass the scene (for adding meshes) and boundaries (for screen wrapping). */
     this.playerSpacecraft = new ControlledPlayerSpacecraft(
       this.primaryRenderingScene,
-      this.gameplayAreaBoundaryLimits
+      this.gameplayAreaBoundaryLimits,
     );
 
     /* ENTITY ARRAYS:
@@ -90,9 +89,9 @@ export class PrimaryGameLogicController {
     /* GAME STATE VARIABLES: */
     this.currentTotalPlayerScore = 0;
     this.isGameCurrentlyInGameOverState = false;
-    this.isCurrentlyInSplashScreenMode = true;         // Start on splash screen
-    this.gameOverTimeoutRemainingSeconds = 5.0;         // Countdown to auto-return
-    this.timestampOfLastDischargedProjectile = 0;       // For fire rate limiting
+    this.isCurrentlyInSplashScreenMode = true; // Start on splash screen
+    this.gameOverTimeoutRemainingSeconds = 5.0; // Countdown to auto-return
+    this.timestampOfLastDischargedProjectile = 0; // For fire rate limiting
 
     /* WEAPON PROGRESSION SYSTEM:
      * The player starts with weak weapons and upgrades them by collecting
@@ -109,7 +108,7 @@ export class PrimaryGameLogicController {
     this.w_ShotCooldown = 900.0;
 
     /* Tracks the upgrade level for each stat (used for UI display). */
-    this.w_StatsLevels = { 'CAPACITY': 0, 'SPEED': 0, 'RATE': 0, 'RANGE': 0 };
+    this.w_StatsLevels = { CAPACITY: 0, SPEED: 0, RATE: 0, RANGE: 0 };
 
     /* WAVE SYSTEM:
      * currentWaveLevel increases each time all asteroids are destroyed.
@@ -133,10 +132,10 @@ export class PrimaryGameLogicController {
      * The color is purely cosmetic and inherited by child fragments
      * when a larger asteroid splits. */
     this.asteroidColorPalette = [
-        0xbf00ff,  // Purple
-        0x00ffff,  // Cyan
-        0xffff00,  // Yellow
-        0x00ff00   // Green
+      0xbf00ff, // Purple
+      0x00ffff, // Cyan
+      0xffff00, // Yellow
+      0x00ff00, // Green
     ];
 
     /* PERSISTENT HIGH SCORE:
@@ -144,7 +143,7 @@ export class PrimaryGameLogicController {
      * parseInt() converts the string to an integer.
      * The || 0 fallback handles null (first visit) and NaN (corrupted data). */
     this.persistentLocalStorageHighScore =
-      parseInt(localStorage.getItem('pink-ufo-asteroids-high-score')) || 0;
+      parseInt(localStorage.getItem("pink-ufo-asteroids-high-score")) || 0;
 
     /* BALANCE UI:
      * Initialize the developer tuning panel (see BalanceUI.js).
@@ -165,35 +164,38 @@ export class PrimaryGameLogicController {
      *
      * NOTE: We use 'keydown' (not the InputManager) because these are
      * one-shot actions (toggle, start), not continuous held-key inputs. */
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'KeyT') {
-            this.balanceTuningUI.toggle();
-        }
-        if (e.code === 'Space' && this.isCurrentlyInSplashScreenMode) {
-            this.beginActiveMission();
-        }
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "KeyT") {
+        this.balanceTuningUI.toggle();
+      }
+      if (e.code === "Space" && this.isCurrentlyInSplashScreenMode) {
+        this.beginActiveMission();
+      }
     });
 
     /* Update splash screen stats with any saved high score. */
     this.synchronizeScoreStatisticsUI();
 
     /* Recalculate play boundaries when the window is resized. */
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       this.recalculateGameplayAreaBoundaryLimits();
     });
 
     /* UI BUTTON BINDINGS:
      * Connect the HTML button elements to their handler methods.
      * addEventListener('click', ...) is the standard DOM event API. */
-    document.getElementById('begin-active-mission-button').addEventListener('click', () => {
-      this.beginActiveMission();
-    });
+    document
+      .getElementById("begin-active-mission-button")
+      .addEventListener("click", () => {
+        this.beginActiveMission();
+      });
 
-    document.getElementById('reset-high-score-button').addEventListener('click', () => {
+    document
+      .getElementById("reset-high-score-button")
+      .addEventListener("click", () => {
         this.wipePersistentHighScoreRecords();
-    });
+      });
   }
-
 
   /* ==========================================================================
    * recalculateGameplayAreaBoundaryLimits()
@@ -221,25 +223,31 @@ export class PrimaryGameLogicController {
   recalculateGameplayAreaBoundaryLimits() {
     /* Convert FOV from degrees to radians (Three.js stores FOV in degrees,
      * but JavaScript's Math.tan() expects radians). */
-    const verticalFieldOfViewInRadians = THREE.MathUtils.degToRad(this.primaryPerspectiveCamera.fov);
+    const verticalFieldOfViewInRadians = THREE.MathUtils.degToRad(
+      this.primaryPerspectiveCamera.fov,
+    );
 
     /* Calculate dimensions of the visible rectangle at Z=0 (the gameplay plane). */
-    const visibleHeightAtOriginPlane = 2 * Math.tan(verticalFieldOfViewInRadians / 2) * this.primaryPerspectiveCamera.position.z;
-    const visibleWidthAtOriginPlane = visibleHeightAtOriginPlane * this.primaryPerspectiveCamera.aspect;
+    const visibleHeightAtOriginPlane =
+      2 *
+      Math.tan(verticalFieldOfViewInRadians / 2) *
+      this.primaryPerspectiveCamera.position.z;
+    const visibleWidthAtOriginPlane =
+      visibleHeightAtOriginPlane * this.primaryPerspectiveCamera.aspect;
 
     this.gameplayAreaBoundaryLimits = {
       left: -visibleWidthAtOriginPlane / 2,
       right: visibleWidthAtOriginPlane / 2,
       bottom: -visibleHeightAtOriginPlane / 2,
-      top: visibleHeightAtOriginPlane / 2
+      top: visibleHeightAtOriginPlane / 2,
     };
 
     /* Propagate updated boundaries to the player ship for screen wrapping. */
     if (this.playerSpacecraft) {
-        this.playerSpacecraft.gameplayAreaBoundaryLimits = this.gameplayAreaBoundaryLimits;
+      this.playerSpacecraft.gameplayAreaBoundaryLimits =
+        this.gameplayAreaBoundaryLimits;
     }
   }
-
 
   /* ==========================================================================
    * processGameLogicFrameUpdate() — THE MAIN GAME TICK
@@ -270,7 +278,9 @@ export class PrimaryGameLogicController {
       /* Update the "Returning to base in Xs..." countdown text.
        * Math.ceil() rounds UP so the display shows "1" until the very last moment
        * (not "0" while still counting). */
-      const timeoutTextElement = document.getElementById('game-over-timeout-info');
+      const timeoutTextElement = document.getElementById(
+        "game-over-timeout-info",
+      );
       if (timeoutTextElement) {
         timeoutTextElement.innerText = `Returning to base in ${Math.ceil(this.gameOverTimeoutRemainingSeconds)}s...`;
       }
@@ -282,7 +292,11 @@ export class PrimaryGameLogicController {
       }
 
       /* Allow manual restart via 'R' key during game-over. */
-      if (this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed('KeyR')) {
+      if (
+        this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed(
+          "KeyR",
+        )
+      ) {
         this.initiateGameSessionRestart();
       }
       return;
@@ -291,13 +305,21 @@ export class PrimaryGameLogicController {
     /* --- STATE: ACTIVE GAMEPLAY --- */
 
     /* Update the player ship's position, rotation, and animations. */
-    this.playerSpacecraft.performFrameUpdate(timeDeltaInSeconds, this.playerInputStateTracker);
+    this.playerSpacecraft.performFrameUpdate(
+      timeDeltaInSeconds,
+      this.playerInputStateTracker,
+    );
 
     /* THRUST SOUND:
      * Start the engine sound when the player is thrusting, stop when released.
      * The SoundManager internally guards against re-triggering every frame. */
-    const isThrusting = this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed('ArrowUp') ||
-                        this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed('KeyW');
+    const isThrusting =
+      this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed(
+        "ArrowUp",
+      ) ||
+      this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed(
+        "KeyW",
+      );
     if (isThrusting) {
       this.soundManager.startThrust();
     } else {
@@ -310,12 +332,23 @@ export class PrimaryGameLogicController {
      *
      * performance.now() returns a high-resolution timestamp in MILLISECONDS.
      * We compare against w_ShotCooldown (also in ms) to enforce fire rate. */
-    if (this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed('Space')) {
+    if (
+      this.playerInputStateTracker.verifyIfSpecificKeyIsCurrentlyPressed(
+        "Space",
+      )
+    ) {
       const currentHighResolutionTimestamp = performance.now();
-      const hasAvailableShotCapacity = this.currentlyActiveProjectiles.length < this.w_OnScreenLimit;
+      const hasAvailableShotCapacity =
+        this.currentlyActiveProjectiles.length < this.w_OnScreenLimit;
 
-      if (hasAvailableShotCapacity && currentHighResolutionTimestamp - this.timestampOfLastDischargedProjectile > this.w_ShotCooldown) {
-        this.timestampOfLastDischargedProjectile = currentHighResolutionTimestamp;
+      if (
+        hasAvailableShotCapacity &&
+        currentHighResolutionTimestamp -
+          this.timestampOfLastDischargedProjectile >
+          this.w_ShotCooldown
+      ) {
+        this.timestampOfLastDischargedProjectile =
+          currentHighResolutionTimestamp;
         this.dischargeSpacecraftProjectile();
       }
     }
@@ -342,11 +375,11 @@ export class PrimaryGameLogicController {
 
     /* UPDATE ALL ACTIVE ASTEROIDS (same backward iteration pattern). */
     for (let i = this.currentlyActiveAsteroids.length - 1; i >= 0; i--) {
-        const currentHazard = this.currentlyActiveAsteroids[i];
-        currentHazard.performFrameUpdate(timeDeltaInSeconds);
-        if (!currentHazard.isCurrentlyActiveAndValid) {
-            this.currentlyActiveAsteroids.splice(i, 1);
-        }
+      const currentHazard = this.currentlyActiveAsteroids[i];
+      currentHazard.performFrameUpdate(timeDeltaInSeconds);
+      if (!currentHazard.isCurrentlyActiveAndValid) {
+        this.currentlyActiveAsteroids.splice(i, 1);
+      }
     }
 
     /* RUN COLLISION DETECTION after all entities have moved to their new positions. */
@@ -354,14 +387,13 @@ export class PrimaryGameLogicController {
 
     /* UPDATE ALL ACTIVE BONUSES (same backward iteration pattern). */
     for (let i = this.currentlyActiveBonuses.length - 1; i >= 0; i--) {
-        const bonus = this.currentlyActiveBonuses[i];
-        bonus.performFrameUpdate(timeDeltaInSeconds);
-        if (!bonus.isCurrentlyActiveAndValid) {
-            this.currentlyActiveBonuses.splice(i, 1);
-        }
+      const bonus = this.currentlyActiveBonuses[i];
+      bonus.performFrameUpdate(timeDeltaInSeconds);
+      if (!bonus.isCurrentlyActiveAndValid) {
+        this.currentlyActiveBonuses.splice(i, 1);
+      }
     }
   }
-
 
   /* ==========================================================================
    * dischargeSpacecraftProjectile() — FIRE A BULLET
@@ -382,42 +414,45 @@ export class PrimaryGameLogicController {
     const forwardDirectionUnitVector = new THREE.Vector3(0, 1, 0);
     forwardDirectionUnitVector.applyAxisAngle(
       new THREE.Vector3(0, 0, 1),
-      this.playerSpacecraft.spacecraftRenderingMesh.rotation.z
+      this.playerSpacecraft.spacecraftRenderingMesh.rotation.z,
     );
 
     /* Clone the ship's position and offset forward by the collision radius. */
-    const projectileSpawnLocationCoordinate = this.playerSpacecraft.spacecraftRenderingMesh.position.clone();
-    projectileSpawnLocationCoordinate.addScaledVector(forwardDirectionUnitVector, this.playerSpacecraft.physicalCollisionRadius);
+    const projectileSpawnLocationCoordinate =
+      this.playerSpacecraft.spacecraftRenderingMesh.position.clone();
+    projectileSpawnLocationCoordinate.addScaledVector(
+      forwardDirectionUnitVector,
+      this.playerSpacecraft.physicalCollisionRadius,
+    );
 
     /* Create the bullet with current weapon stats and ship momentum. */
     const newlyCreatedProjectile = new ProjectileParticle(
-        this.primaryRenderingScene,
-        projectileSpawnLocationCoordinate,
-        forwardDirectionUnitVector,
-        this.gameplayAreaBoundaryLimits,
-        this.w_ShotSpeed,
-        this.w_ShotRange,
-        this.playerSpacecraft.currentLinearVelocityVector  // Newtonian momentum transfer
-     );
-     this.currentlyActiveProjectiles.push(newlyCreatedProjectile);
-     this.updateAmmunitionHUDDisplay();
+      this.primaryRenderingScene,
+      projectileSpawnLocationCoordinate,
+      forwardDirectionUnitVector,
+      this.gameplayAreaBoundaryLimits,
+      this.w_ShotSpeed,
+      this.w_ShotRange,
+      this.playerSpacecraft.currentLinearVelocityVector, // Newtonian momentum transfer
+    );
+    this.currentlyActiveProjectiles.push(newlyCreatedProjectile);
+    this.updateAmmunitionHUDDisplay();
 
-     /* SOUND: Play the shot fired audio cue. */
-     this.soundManager.playShotFired();
-   }
+    /* SOUND: Play the shot fired audio cue. */
+    this.soundManager.playShotFired();
+  }
 
-   /* Updates the weapon stats text in the HUD. */
-   updateAmmunitionHUDDisplay() {
-     const ammoElem = document.getElementById('game-current-ammo-display');
-     if (ammoElem) {
-         const limit = this.w_OnScreenLimit;
-         const rate = Math.round(900 - this.w_ShotCooldown) + 1;
-         const speed = Math.round(this.w_ShotSpeed);
-         const range = Math.round(this.w_ShotRange);
-         ammoElem.innerText = `Shots: ${limit} | Shot Rate: ${rate} | Shot Velocity: ${speed} | Shot Range: ${range}`;
-     }
-   }
-
+  /* Updates the weapon stats text in the HUD. */
+  updateAmmunitionHUDDisplay() {
+    const ammoElem = document.getElementById("game-current-ammo-display");
+    if (ammoElem) {
+      const limit = this.w_OnScreenLimit;
+      const rate = Math.round(900 - this.w_ShotCooldown) + 1;
+      const speed = Math.round(this.w_ShotSpeed);
+      const range = Math.round(this.w_ShotRange);
+      ammoElem.innerText = `Shots: ${limit} | Shot Rate: ${rate} | Shot Velocity: ${speed} | Shot Range: ${range}`;
+    }
+  }
 
   /* ==========================================================================
    * executeCollisionDetectionPass() — PHYSICS COLLISION ENGINE
@@ -440,23 +475,35 @@ export class PrimaryGameLogicController {
    * @param {number} timeDeltaInSeconds - Not used directly but passed for API consistency.
    * ========================================================================== */
   executeCollisionDetectionPass(timeDeltaInSeconds) {
-
     /* --- 1. PROJECTILE ↔ ASTEROID COLLISIONS ---
      * Double backward loop: for each bullet, check against each asteroid.
      * When a hit is found, destroy the bullet and damage the asteroid. */
-    for (let projectileIdx = this.currentlyActiveProjectiles.length - 1; projectileIdx >= 0; projectileIdx--) {
+    for (
+      let projectileIdx = this.currentlyActiveProjectiles.length - 1;
+      projectileIdx >= 0;
+      projectileIdx--
+    ) {
       const activeProjectile = this.currentlyActiveProjectiles[projectileIdx];
 
-      for (let asteroidIdx = this.currentlyActiveAsteroids.length - 1; asteroidIdx >= 0; asteroidIdx--) {
+      for (
+        let asteroidIdx = this.currentlyActiveAsteroids.length - 1;
+        asteroidIdx >= 0;
+        asteroidIdx--
+      ) {
         const candidateAsteroid = this.currentlyActiveAsteroids[asteroidIdx];
 
         /* Vector3.distanceTo() calculates the Euclidean distance between two points:
          * √((x2-x1)² + (y2-y1)² + (z2-z1)²) */
-        const euclideanDistanceBetweenEntities = activeProjectile.projectileRenderingMesh.position.distanceTo(
-          candidateAsteroid.asteroidRenderingMesh.position
-        );
+        const euclideanDistanceBetweenEntities =
+          activeProjectile.projectileRenderingMesh.position.distanceTo(
+            candidateAsteroid.asteroidRenderingMesh.position,
+          );
 
-        if (euclideanDistanceBetweenEntities < activeProjectile.physicalCollisionRadius + candidateAsteroid.physicalCollisionRadius) {
+        if (
+          euclideanDistanceBetweenEntities <
+          activeProjectile.physicalCollisionRadius +
+            candidateAsteroid.physicalCollisionRadius
+        ) {
           activeProjectile.initiateSelfDestructionSequence();
 
           /* SOUND: Play the shot hit audio cue on every bullet↔asteroid contact. */
@@ -465,11 +512,11 @@ export class PrimaryGameLogicController {
           /* takeDamage() returns true if the asteroid's health reaches zero. */
           const isAsteroidDestroyed = candidateAsteroid.takeDamage();
           if (isAsteroidDestroyed) {
-              /* SOUND: Play the asteroid break/crunch sound on destruction. */
-              this.soundManager.playAsteroidBreak();
-              this.executeAsteroidDecompositionAndSplitting(candidateAsteroid);
+            /* SOUND: Play the asteroid break/crunch sound on destruction. */
+            this.soundManager.playAsteroidBreak();
+            this.executeAsteroidDecompositionAndSplitting(candidateAsteroid);
           }
-          break;  // This bullet is spent — stop checking it against other asteroids.
+          break; // This bullet is spent — stop checking it against other asteroids.
         }
       }
     }
@@ -482,12 +529,17 @@ export class PrimaryGameLogicController {
     for (const imminentHazard of this.currentlyActiveAsteroids) {
       if (!imminentHazard.isCurrentlyActiveAndValid) continue;
 
-      const distanceToPlayerSpacecraftCenter = this.playerSpacecraft.spacecraftRenderingMesh.position.distanceTo(
-        imminentHazard.asteroidRenderingMesh.position
-      );
+      const distanceToPlayerSpacecraftCenter =
+        this.playerSpacecraft.spacecraftRenderingMesh.position.distanceTo(
+          imminentHazard.asteroidRenderingMesh.position,
+        );
 
       const collisionBufferScaleFactor = 0.8;
-      if (distanceToPlayerSpacecraftCenter < this.playerSpacecraft.physicalCollisionRadius + (imminentHazard.physicalCollisionRadius * collisionBufferScaleFactor)) {
+      if (
+        distanceToPlayerSpacecraftCenter <
+        this.playerSpacecraft.physicalCollisionRadius +
+          imminentHazard.physicalCollisionRadius * collisionBufferScaleFactor
+      ) {
         this.transitionToGameOverState();
       }
     }
@@ -495,34 +547,41 @@ export class PrimaryGameLogicController {
     /* --- 3. PLAYER ↔ BONUS COLLISIONS ---
      * When the player touches a bonus gem, apply the upgrade and remove the gem. */
     for (let i = this.currentlyActiveBonuses.length - 1; i >= 0; i--) {
-        const bonus = this.currentlyActiveBonuses[i];
-        const distanceToPlayer = this.playerSpacecraft.spacecraftRenderingMesh.position.distanceTo(bonus.gemMesh.position);
+      const bonus = this.currentlyActiveBonuses[i];
+      const distanceToPlayer =
+        this.playerSpacecraft.spacecraftRenderingMesh.position.distanceTo(
+          bonus.gemMesh.position,
+        );
 
-        if (distanceToPlayer < this.playerSpacecraft.physicalCollisionRadius + bonus.physicalCollisionRadius) {
-            /* SOUND: Play the bonus pickup chime. */
-            this.soundManager.playBonusPickup();
+      if (
+        distanceToPlayer <
+        this.playerSpacecraft.physicalCollisionRadius +
+          bonus.physicalCollisionRadius
+      ) {
+        /* SOUND: Play the bonus pickup chime. */
+        this.soundManager.playBonusPickup();
 
-            this.upgradeWeaponSystem(bonus.rewardType);
+        this.upgradeWeaponSystem(bonus.rewardType);
 
-            if (bonus.rewardType === 'POINTS') {
-                this.currentTotalPlayerScore += 2000;
-                document.getElementById('game-current-score-display').innerText = `Score: ${this.currentTotalPlayerScore}`;
-            }
-
-            this.updateAmmunitionHUDDisplay();
-            bonus.initiateSelfDestructionSequence();
+        if (bonus.rewardType === "POINTS") {
+          this.currentTotalPlayerScore += 2000;
+          document.getElementById("game-current-score-display").innerText =
+            `Score: ${this.currentTotalPlayerScore}`;
         }
+
+        this.updateAmmunitionHUDDisplay();
+        bonus.initiateSelfDestructionSequence();
+      }
     }
 
     /* --- 4. WAVE COMPLETION CHECK ---
      * When all asteroids are destroyed, spawn the next wave.
      * This creates an endless wave progression system. */
     if (this.currentlyActiveAsteroids.length === 0) {
-        this.currentWaveLevel++;
-        this.spawnInitialHazardWave();
+      this.currentWaveLevel++;
+      this.spawnInitialHazardWave();
     }
   }
-
 
   /* ==========================================================================
    * executeAsteroidDecompositionAndSplitting() — ASTEROID SPLITTING
@@ -544,16 +603,20 @@ export class PrimaryGameLogicController {
    * @param {CelestialHazardousAsteroid} asteroidToDecompose - The asteroid that was just destroyed.
    * ========================================================================== */
   executeAsteroidDecompositionAndSplitting(asteroidToDecompose) {
-    const originalDecompositionSourceCoordinate = asteroidToDecompose.asteroidRenderingMesh.position.clone();
-    const childAsteroidSizeCategoryValue = asteroidToDecompose.relativeHazardSizeCategory - 1;
+    const originalDecompositionSourceCoordinate =
+      asteroidToDecompose.asteroidRenderingMesh.position.clone();
+    const childAsteroidSizeCategoryValue =
+      asteroidToDecompose.relativeHazardSizeCategory - 1;
 
     /* Remove the parent asteroid from the scene. */
     asteroidToDecompose.initiateDecompositionSequence();
 
     /* Award points (inversely proportional to size). */
-    const scoreRewardIncrement = 100 * (4 - asteroidToDecompose.relativeHazardSizeCategory);
+    const scoreRewardIncrement =
+      100 * (4 - asteroidToDecompose.relativeHazardSizeCategory);
     this.currentTotalPlayerScore += scoreRewardIncrement;
-    document.getElementById('game-current-score-display').innerText = `Score: ${this.currentTotalPlayerScore}`;
+    document.getElementById("game-current-score-display").innerText =
+      `Score: ${this.currentTotalPlayerScore}`;
 
     const parentColor = asteroidToDecompose.asteroidColor;
 
@@ -564,12 +627,31 @@ export class PrimaryGameLogicController {
 
     /* SPAWN CHILDREN (if not already the smallest size). */
     if (childAsteroidSizeCategoryValue > 0) {
-      const childHealth = this.calculateAsteroidHealth(this.currentWaveLevel, childAsteroidSizeCategoryValue);
+      const childHealth = this.calculateAsteroidHealth(
+        this.currentWaveLevel,
+        childAsteroidSizeCategoryValue,
+      );
 
       /* Two children spawn at the parent's position with random velocities.
        * They inherit the parent's color and lineageId for family tracking. */
-      const childA = new CelestialHazardousAsteroid(this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, originalDecompositionSourceCoordinate.clone(), childAsteroidSizeCategoryValue, parentColor, childHealth, linId);
-      const childB = new CelestialHazardousAsteroid(this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, originalDecompositionSourceCoordinate.clone(), childAsteroidSizeCategoryValue, parentColor, childHealth, linId);
+      const childA = new CelestialHazardousAsteroid(
+        this.primaryRenderingScene,
+        this.gameplayAreaBoundaryLimits,
+        originalDecompositionSourceCoordinate.clone(),
+        childAsteroidSizeCategoryValue,
+        parentColor,
+        childHealth,
+        linId,
+      );
+      const childB = new CelestialHazardousAsteroid(
+        this.primaryRenderingScene,
+        this.gameplayAreaBoundaryLimits,
+        originalDecompositionSourceCoordinate.clone(),
+        childAsteroidSizeCategoryValue,
+        parentColor,
+        childHealth,
+        linId,
+      );
 
       this.currentlyActiveAsteroids.push(childA);
       this.currentlyActiveAsteroids.push(childB);
@@ -582,26 +664,37 @@ export class PrimaryGameLogicController {
      * If all fragments of this lineage are destroyed (count === 0),
      * spawn a special high-value bonus reward. */
     if (this.lineageRegistry.get(linId) === 0) {
-        const familyWipeTypes = ['CAPACITY', 'POINTS'];
-        const type = familyWipeTypes[Math.floor(Math.random() * familyWipeTypes.length)];
+      const familyWipeTypes = ["CAPACITY", "POINTS"];
+      const type =
+        familyWipeTypes[Math.floor(Math.random() * familyWipeTypes.length)];
+
+      this.currentlyActiveBonuses.push(
+        new BonusPickupElement(
+          this.primaryRenderingScene,
+          originalDecompositionSourceCoordinate.clone(),
+          parentColor,
+          type,
+        ),
+      );
+      this.lineageRegistry.delete(linId); // Clean up the Map entry
+    } else {
+      /* RANDOM DROP: 25% chance to spawn a weapon upgrade on any asteroid kill. */
+      if (Math.random() < 0.25) {
+        const dropTypes = ["CAPACITY", "SPEED", "RATE", "RANGE"];
+        const randomType =
+          dropTypes[Math.floor(Math.random() * dropTypes.length)];
 
         this.currentlyActiveBonuses.push(
-            new BonusPickupElement(this.primaryRenderingScene, originalDecompositionSourceCoordinate.clone(), parentColor, type)
+          new BonusPickupElement(
+            this.primaryRenderingScene,
+            originalDecompositionSourceCoordinate.clone(),
+            0xffffff,
+            randomType,
+          ),
         );
-        this.lineageRegistry.delete(linId);  // Clean up the Map entry
-    } else {
-        /* RANDOM DROP: 25% chance to spawn a weapon upgrade on any asteroid kill. */
-        if (Math.random() < 0.25) {
-            const dropTypes = ['CAPACITY', 'SPEED', 'RATE', 'RANGE'];
-            const randomType = dropTypes[Math.floor(Math.random() * dropTypes.length)];
-
-            this.currentlyActiveBonuses.push(
-                new BonusPickupElement(this.primaryRenderingScene, originalDecompositionSourceCoordinate.clone(), 0xffffff, randomType)
-            );
-        }
+      }
     }
   }
-
 
   /* ==========================================================================
    * transitionToGameOverState() — PLAYER DEATH HANDLER
@@ -615,8 +708,11 @@ export class PrimaryGameLogicController {
      * browser sessions (survives tab close, browser restart, even reboots). */
     this.lastSessionEndingScore = this.currentTotalPlayerScore;
     if (this.currentTotalPlayerScore > this.persistentLocalStorageHighScore) {
-        this.persistentLocalStorageHighScore = this.currentTotalPlayerScore;
-        localStorage.setItem('pink-ufo-asteroids-high-score', this.persistentLocalStorageHighScore);
+      this.persistentLocalStorageHighScore = this.currentTotalPlayerScore;
+      localStorage.setItem(
+        "pink-ufo-asteroids-high-score",
+        this.persistentLocalStorageHighScore,
+      );
     }
 
     /* SOUND: Stop all gameplay audio and play the game over sound. */
@@ -630,10 +726,10 @@ export class PrimaryGameLogicController {
     this.playerSpacecraft.mainHullMaterial.emissive.setHex(0x550000);
 
     /* Show the game-over DOM panel and restore the mouse cursor. */
-    document.getElementById('game-over-notification-panel').style.display = 'block';
-    document.body.style.cursor = 'auto';
+    document.getElementById("game-over-notification-panel").style.display =
+      "block";
+    document.body.style.cursor = "auto";
   }
-
 
   /* ==========================================================================
    * initiateGameSessionRestart() — FULL GAME RESET
@@ -656,9 +752,11 @@ export class PrimaryGameLogicController {
     this.w_ShotCooldown = 900.0;
 
     /* Reset HUD displays. */
-    document.getElementById('game-current-score-display').innerText = `Score: 0`;
+    document.getElementById("game-current-score-display").innerText =
+      `Score: 0`;
     this.updateAmmunitionHUDDisplay();
-    document.getElementById('game-over-notification-panel').style.display = 'none';
+    document.getElementById("game-over-notification-panel").style.display =
+      "none";
 
     /* Reset ship appearance and physics. */
     this.playerSpacecraft.mainHullMaterial.color.setHex(0xff00ff);
@@ -668,19 +766,21 @@ export class PrimaryGameLogicController {
     this.playerSpacecraft.spacecraftHeadingContainer.rotation.z = 0;
 
     /* Purge all existing entities from the scene. */
-    for (const pulse of this.currentlyActiveProjectiles) pulse.initiateSelfDestructionSequence();
+    for (const pulse of this.currentlyActiveProjectiles)
+      pulse.initiateSelfDestructionSequence();
     this.currentlyActiveProjectiles = [];
 
-    for (const hazard of this.currentlyActiveAsteroids) hazard.initiateDecompositionSequence();
+    for (const hazard of this.currentlyActiveAsteroids)
+      hazard.initiateDecompositionSequence();
     this.currentlyActiveAsteroids = [];
 
-    for (const bonus of this.currentlyActiveBonuses) bonus.initiateSelfDestructionSequence();
+    for (const bonus of this.currentlyActiveBonuses)
+      bonus.initiateSelfDestructionSequence();
     this.currentlyActiveBonuses = [];
 
     /* Spawn the first wave of asteroids. */
     this.spawnInitialHazardWave();
   }
-
 
   /* ==========================================================================
    * spawnInitialHazardWave() — WAVE GENERATION
@@ -694,11 +794,19 @@ export class PrimaryGameLogicController {
     const initialWaveAsteroidQuantity = 5 + Math.min(this.currentWaveLevel, 5);
 
     for (let i = 0; i < initialWaveAsteroidQuantity; i++) {
-      const randomColor = this.asteroidColorPalette[Math.floor(Math.random() * this.asteroidColorPalette.length)];
+      const randomColor =
+        this.asteroidColorPalette[
+          Math.floor(Math.random() * this.asteroidColorPalette.length)
+        ];
       const health = this.calculateAsteroidHealth(this.currentWaveLevel, 3);
 
       const asteroid = new CelestialHazardousAsteroid(
-        this.primaryRenderingScene, this.gameplayAreaBoundaryLimits, null, 3, randomColor, health
+        this.primaryRenderingScene,
+        this.gameplayAreaBoundaryLimits,
+        null,
+        3,
+        randomColor,
+        health,
       );
       this.currentlyActiveAsteroids.push(asteroid);
 
@@ -706,7 +814,6 @@ export class PrimaryGameLogicController {
       this.lineageRegistry.set(asteroid.lineageId, 1);
     }
   }
-
 
   /* ==========================================================================
    * calculateAsteroidHealth() — DIFFICULTY SCALING
@@ -722,12 +829,11 @@ export class PrimaryGameLogicController {
    *   Wave 6:   Large=3hp, Medium=3hp, Small=2hp
    * ========================================================================== */
   calculateAsteroidHealth(wave, size) {
-      if (size === 3) return 1 + Math.floor((wave + 2) / 3);
-      if (size === 2) return 1 + Math.floor((wave + 1) / 3);
-      if (size === 1) return 1 + Math.floor(wave / 3);
-      return 1;
+    if (size === 3) return 1 + Math.floor((wave + 2) / 3);
+    if (size === 2) return 1 + Math.floor((wave + 1) / 3);
+    if (size === 1) return 1 + Math.floor(wave / 3);
+    return 1;
   }
-
 
   /* ==========================================================================
    * upgradeWeaponSystem() — WEAPON STAT UPGRADE
@@ -744,62 +850,71 @@ export class PrimaryGameLogicController {
    * @param {string} rewardType - 'CAPACITY', 'SPEED', 'RATE', 'RANGE', or 'POINTS'.
    * ========================================================================== */
   upgradeWeaponSystem(rewardType) {
-      if (!this.w_StatsLevels[rewardType] && rewardType !== 'POINTS') {
-          this.w_StatsLevels[rewardType] = 0;
-      }
+    if (!this.w_StatsLevels[rewardType] && rewardType !== "POINTS") {
+      this.w_StatsLevels[rewardType] = 0;
+    }
 
-      let upgraded = false;
-      let atMax = false;
+    let upgraded = false;
+    let atMax = false;
 
-      switch(rewardType) {
-          case 'CAPACITY':
-              if (this.w_OnScreenLimit < 6) {
-                  this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 1);
-                  this.w_StatsLevels['CAPACITY']++;
-                  upgraded = true;
-              } else { atMax = true; }
-              break;
+    switch (rewardType) {
+      case "CAPACITY":
+        if (this.w_OnScreenLimit < 6) {
+          this.w_OnScreenLimit = Math.min(6, this.w_OnScreenLimit + 1);
+          this.w_StatsLevels["CAPACITY"]++;
+          upgraded = true;
+        } else {
+          atMax = true;
+        }
+        break;
 
-          case 'RANGE':
-              const screenWidth = this.gameplayAreaBoundaryLimits.right - this.gameplayAreaBoundaryLimits.left;
-              const maxRange = screenWidth * 0.5;
-              if (this.w_ShotRange < maxRange) {
-                  this.w_ShotRange = Math.min(maxRange, this.w_ShotRange + 8);
-                  this.w_StatsLevels['RANGE']++;
-                  upgraded = true;
-              } else { atMax = true; }
-              break;
+      case "RANGE":
+        const screenWidth =
+          this.gameplayAreaBoundaryLimits.right -
+          this.gameplayAreaBoundaryLimits.left;
+        const maxRange = screenWidth * 0.5;
+        if (this.w_ShotRange < maxRange) {
+          this.w_ShotRange = Math.min(maxRange, this.w_ShotRange + 8);
+          this.w_StatsLevels["RANGE"]++;
+          upgraded = true;
+        } else {
+          atMax = true;
+        }
+        break;
 
-          case 'SPEED':
-              if (this.w_ShotSpeed < 80) {
-                  this.w_ShotSpeed = Math.min(80, this.w_ShotSpeed + 10);
-                  this.w_StatsLevels['SPEED']++;
-                  upgraded = true;
-              } else { atMax = true; }
-              break;
+      case "SPEED":
+        if (this.w_ShotSpeed < 80) {
+          this.w_ShotSpeed = Math.min(80, this.w_ShotSpeed + 10);
+          this.w_StatsLevels["SPEED"]++;
+          upgraded = true;
+        } else {
+          atMax = true;
+        }
+        break;
 
-          case 'RATE':
-              if (this.w_ShotCooldown > 100) {
-                  this.w_ShotCooldown = Math.max(100, this.w_ShotCooldown - 60);
-                  this.w_StatsLevels['RATE']++;
-                  upgraded = true;
-              } else { atMax = true; }
-              break;
+      case "RATE":
+        if (this.w_ShotCooldown > 100) {
+          this.w_ShotCooldown = Math.max(100, this.w_ShotCooldown - 60);
+          this.w_StatsLevels["RATE"]++;
+          upgraded = true;
+        } else {
+          atMax = true;
+        }
+        break;
 
-          case 'POINTS':
-              break;  // Points don't upgrade weapon stats
-      }
+      case "POINTS":
+        break; // Points don't upgrade weapon stats
+    }
 
-      /* Show a floating notification popup (see showBoostNotification below). */
-      this.showBoostNotification(rewardType, upgraded, atMax);
-      this.updateAmmunitionHUDDisplay();
+    /* Show a floating notification popup (see showBoostNotification below). */
+    this.showBoostNotification(rewardType, upgraded, atMax);
+    this.updateAmmunitionHUDDisplay();
 
-      /* Sync the tuning console sliders to reflect the new values. */
-      if (this.balanceTuningUI) {
-          this.balanceTuningUI.synchronizeUIFromGameState();
-      }
+    /* Sync the tuning console sliders to reflect the new values. */
+    if (this.balanceTuningUI) {
+      this.balanceTuningUI.synchronizeUIFromGameState();
+    }
   }
-
 
   /* ==========================================================================
    * showBoostNotification() — FLOATING POPUP
@@ -815,52 +930,53 @@ export class PrimaryGameLogicController {
    *   - Font rendering is crisp at any size (vector, not rasterized).
    * ========================================================================== */
   showBoostNotification(type, upgraded, atMax) {
-      const container = document.body;
-      const notification = document.createElement('div');
-      notification.className = 'boost-notification-popup';
+    const container = document.body;
+    const notification = document.createElement("div");
+    notification.className = "boost-notification-popup";
 
-      if (type === 'POINTS') {
-          notification.innerHTML = `<div class="boost-type" style="color: #ffffff">BONUS POINTS!</div><div class="boost-level">+2000</div>`;
-      } else {
-          const level = this.w_StatsLevels[type] || 0;
-          let label = type;
-          if (type === 'CAPACITY') label = 'CAPACITY';
-          if (type === 'RATE') label = 'RATE';
+    if (type === "POINTS") {
+      notification.innerHTML = `<div class="boost-type" style="color: #ffffff">BONUS POINTS!</div><div class="boost-level">+2000</div>`;
+    } else {
+      const level = this.w_StatsLevels[type] || 0;
+      let label = type;
+      if (type === "CAPACITY") label = "CAPACITY";
+      if (type === "RATE") label = "RATE";
 
-          const statusText = atMax ? 'MAXED' : 'UP';
-          const prefix = "BULLET ";
+      const statusText = atMax ? "MAXED" : "UP";
+      const prefix = "BULLET ";
 
-          notification.innerHTML = `
+      notification.innerHTML = `
             <div class="boost-type" style="color: ${this.getBoostColor(type)}">${prefix}${label} ${statusText}</div>
-            <div class="boost-level">${atMax ? 'LEVEL MAX' : 'LEVEL ' + level}</div>
+            <div class="boost-level">${atMax ? "LEVEL MAX" : "LEVEL " + level}</div>
           `;
-      }
+    }
 
-      /* Position using percentage values for viewport-relative placement.
-       * The ±10% randomness prevents stacking if multiple boosts are collected rapidly. */
-      const x = 50 + (Math.random() * 20 - 10);
-      const y = 40 + (Math.random() * 20 - 10);
-      notification.style.left = `${x}%`;
-      notification.style.top = `${y}%`;
+    /* Position using percentage values for viewport-relative placement.
+     * The ±10% randomness prevents stacking if multiple boosts are collected rapidly. */
+    const x = 50 + (Math.random() * 20 - 10);
+    const y = 40 + (Math.random() * 20 - 10);
+    notification.style.left = `${x}%`;
+    notification.style.top = `${y}%`;
 
-      container.appendChild(notification);
+    container.appendChild(notification);
 
-      /* setTimeout schedules removal after the CSS animation completes (2s).
-       * element.remove() detaches it from the DOM, freeing memory. */
-      setTimeout(() => { notification.remove(); }, 2000);
+    /* setTimeout schedules removal after the CSS animation completes (2s).
+     * element.remove() detaches it from the DOM, freeing memory. */
+    setTimeout(() => {
+      notification.remove();
+    }, 2000);
   }
 
   /** Returns the CSS color string for a given boost type. */
   getBoostColor(type) {
-      const colors = {
-          'CAPACITY': '#ff0000',
-          'SPEED':    '#ffa500',
-          'RATE':     '#ffff00',
-          'RANGE':    '#ff69b4'
-      };
-      return colors[type] || '#ffffff';
+    const colors = {
+      CAPACITY: "#ff0000",
+      SPEED: "#ffa500",
+      RATE: "#ffff00",
+      RANGE: "#ff69b4",
+    };
+    return colors[type] || "#ffffff";
   }
-
 
   /* ==========================================================================
    * beginActiveMission() — START GAME FROM SPLASH SCREEN
@@ -873,26 +989,27 @@ export class PrimaryGameLogicController {
    * ========================================================================== */
   beginActiveMission() {
     this.isCurrentlyInSplashScreenMode = false;
-    document.body.style.cursor = 'none';
+    document.body.style.cursor = "none";
 
     /* SOUND: Transition audio from splash ambience to gameplay hum. */
     this.soundManager.stopStartScreen();
     this.soundManager.startShipHum();
 
     /* Trigger the CSS opacity transition (defined in style.css). */
-    document.getElementById('game-loading-splash-screen').style.opacity = '0';
+    document.getElementById("game-loading-splash-screen").style.opacity = "0";
 
     /* Wait for the fade to complete before swapping display properties.
      * If we set display:none immediately, the fade transition would be
      * cancelled (elements with display:none can't animate). */
     setTimeout(() => {
-      document.getElementById('game-loading-splash-screen').style.display = 'none';
-      document.getElementById('game-heads-up-display-overlay').style.display = 'flex';
+      document.getElementById("game-loading-splash-screen").style.display =
+        "none";
+      document.getElementById("game-heads-up-display-overlay").style.display =
+        "flex";
     }, 1000);
 
     this.initiateGameSessionRestart();
   }
-
 
   /* ==========================================================================
    * returnToSplashScreen() — RETURN FROM GAME OVER
@@ -905,37 +1022,41 @@ export class PrimaryGameLogicController {
   returnToSplashScreen() {
     this.isCurrentlyInSplashScreenMode = true;
     this.isGameCurrentlyInGameOverState = false;
-    document.body.style.cursor = 'auto';
+    document.body.style.cursor = "auto";
 
     /* SOUND: Stop all gameplay audio and restart the splash screen ambience. */
     this.soundManager.stopAll();
     this.soundManager.startStartScreen();
 
-    document.getElementById('game-heads-up-display-overlay').style.display = 'none';
-    const splashScreen = document.getElementById('game-loading-splash-screen');
-    splashScreen.style.display = 'flex';
-    setTimeout(() => { splashScreen.style.opacity = '1'; }, 10);
+    document.getElementById("game-heads-up-display-overlay").style.display =
+      "none";
+    const splashScreen = document.getElementById("game-loading-splash-screen");
+    splashScreen.style.display = "flex";
+    setTimeout(() => {
+      splashScreen.style.opacity = "1";
+    }, 10);
 
     this.synchronizeScoreStatisticsUI();
   }
 
-
   /* Updates the score labels on the splash screen. */
   synchronizeScoreStatisticsUI() {
-    const lastScoreElem = document.getElementById('last-session-score-value');
-    const highScoreElem = document.getElementById('persistent-high-score-value');
+    const lastScoreElem = document.getElementById("last-session-score-value");
+    const highScoreElem = document.getElementById(
+      "persistent-high-score-value",
+    );
     if (lastScoreElem) lastScoreElem.innerText = this.lastSessionEndingScore;
-    if (highScoreElem) highScoreElem.innerText = this.persistentLocalStorageHighScore;
+    if (highScoreElem)
+      highScoreElem.innerText = this.persistentLocalStorageHighScore;
   }
-
 
   /* Clears the persistent high score after a confirmation dialog.
    * confirm() is a browser-native modal dialog that returns true/false. */
   wipePersistentHighScoreRecords() {
     if (confirm("Are you sure you want to clear your Best Score?")) {
-        this.persistentLocalStorageHighScore = 0;
-        localStorage.removeItem('pink-ufo-asteroids-high-score');
-        this.synchronizeScoreStatisticsUI();
+      this.persistentLocalStorageHighScore = 0;
+      localStorage.removeItem("pink-ufo-asteroids-high-score");
+      this.synchronizeScoreStatisticsUI();
     }
   }
 }

@@ -91,7 +91,7 @@ export class KeyboardInputStateTracker {
      *   - It would break browser shortcuts (Ctrl+R for reload, F12 for DevTools).
      *   - The game doesn't need to prevent default behavior for most keys.
      *   - Spacebar scrolling is already prevented by 'overflow: hidden' on body. */
-    window.addEventListener('keydown', (keyboardEvent) => {
+    window.addEventListener("keydown", (keyboardEvent) => {
       this.activelyPressedKeyboardKeys[keyboardEvent.code] = true;
     });
 
@@ -107,7 +107,7 @@ export class KeyboardInputStateTracker {
      * by listening for 'blur' events on the window and clearing all keys:
      *   window.addEventListener('blur', () => { this.activelyPressedKeyboardKeys = {}; });
      * This is omitted here for tutorial simplicity. */
-    window.addEventListener('keyup', (keyboardEvent) => {
+    window.addEventListener("keyup", (keyboardEvent) => {
       this.activelyPressedKeyboardKeys[keyboardEvent.code] = false;
     });
   }
