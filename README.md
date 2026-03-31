@@ -41,10 +41,35 @@ If you prefer the command line:
 
 ## 📁 Project Structure
 
+*   `index.html`: The single HTML entry point defining all UI layers (splash screen, HUD, debug panel).
+*   `src/style.css`: Complete stylesheet with glassmorphism, gradient text, animations, and font integration.
 *   `src/main.js`: Initialization of the Three.js scene, lighting, and core animation loop.
 *   `src/Game.js`: The primary controller managing wave spawning, collision logic, and the weapon upgrade system.
 *   `src/Player.js`: The animated UFO spacecraft implementation and hierarchical group management.
 *   `src/Asteroid.js`: Procedurally deformed space rock logic and vertex-normal calculation.
 *   `src/Bullet.js`: Projectile physics, momentum inheritance, and dynamic color cycling.
-*   `src/Bonus.js`: Collection of宝石 (gems) with hierarchical timer bars.
+*   `src/Bonus.js`: Collectible gem pickups with hierarchical timer bars.
 *   `src/BalanceUI.js`: Implementation of the Tactical Tuning Console and UI synchronization.
+*   `src/InputManager.js`: Polling-based keyboard input state tracker.
+
+## 📖 Code Tutorial Guide
+
+Every source file is heavily commented as a tutorial-level walkthrough. Here's a summary of the key concepts explained in each file:
+
+| File | Key Topics Explained |
+|---|---|
+| **index.html** | Document structure, Google Fonts loading strategy, `preconnect` optimization, UI layer architecture, `pointer-events` |
+| **style.css** | Glassmorphism, gradient text technique, `cubic-bezier` timing, `z-index` stacking, CSS `@keyframes` animations, Z-fighting, `accent-color` |
+| **main.js** | Scene graph hierarchy, `PerspectiveCamera` math, WebGL renderer pipeline, ambient vs directional lighting, `requestAnimationFrame` vs `setInterval`, delta time for frame-rate independence |
+| **InputManager.js** | Polling vs event-driven input, `event.code` vs `event.key`, stuck key edge cases |
+| **Player.js** | Hierarchical `THREE.Group` pattern, `SphereGeometry` parameters, PBR material properties (`metalness`/`roughness`), `GLTFLoader` async loading, Matcap materials, `Box3` auto-scaling, trigonometric circular placement, Euler integration, momentum decay normalization |
+| **Bullet.js** | `CapsuleGeometry`, `flatShading` vs smooth shading, `EdgesGeometry` vs `WireframeGeometry`, Newtonian momentum transfer, distance-based lifespan, `Color.lerp()` interpolation, vector cloning for mutation safety |
+| **Asteroid.js** | `IcosahedronGeometry`, `BufferAttribute` vertex manipulation, normal recomputation (`computeVertexNormals`), edge spawning strategy, lineage tracking for family wipe bonuses |
+| **Bonus.js** | Gem material design, Z-fighting prevention, scale-based progress bars, sine-wave animation with desynchronized frequencies, cascading scene graph removal |
+| **Game.js** | Game state machine pattern, circle-circle collision detection, backward array iteration for `splice`, FOV trigonometry for boundary calculation, `localStorage` persistence, weapon upgrade progression, difficulty scaling, DOM animation timing |
+| **BalanceUI.js** | Two-way data binding pattern, DOM element caching, CSS class toggle for animations, `input` vs `change` events, `parseFloat` vs `parseInt`, `innerText` vs `innerHTML` |
+
+## 🔊 Sound Design
+
+Thanks to https://tools.dverso.io/audiosprite/ for the audio sprite generation.
+And thanks to [trishacode]https://trishacode.neocities.org/) for the sound effects.

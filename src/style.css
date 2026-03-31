@@ -1,17 +1,77 @@
-/* Full-screen reset for the game application */
+/* ============================================================================
+ * THE PINK UFO — ASTEROID DEFENDER
+ * Main Stylesheet
+ * ============================================================================
+ *
+ * ARCHITECTURE:
+ * This CSS file styles four distinct UI layers that sit above the Three.js
+ * canvas. The layers are (from bottom to top by z-index):
+ *
+ *   z-index 10  — In-game HUD overlay (score, ammo, game-over panel)
+ *   z-index 20  — Splash/Start screen (covers everything until dismissed)
+ *   z-index 1000 — Tactical Tuning Console (debug panel, slides in from right)
+ *   z-index 2000 — Boost notification popups (temporary floating text)
+ *
+ * FONT STRATEGY:
+ *   - "Numans" (Google Font)   → In-game HUD, tuning console, notifications
+ *   - "Audiowide" (Google Font) → Splash screen titles, game-over heading
+ *
+ * COLOR PALETTE:
+ *   #ff00ff (Magenta/Pink)  — Primary brand color, titles, highlights
+ *   #00ffff (Cyan)          — Secondary accent, subtitles, score text
+ *   #ff0066 (Hot Pink/Red)  — Game-over state, danger indicators
+ *   #000 / rgba(0,0,0,...)  — Backgrounds and overlays
+ * ============================================================================ */
+
+
+/* ==========================================================================
+   1. GLOBAL RESETS
+   ==========================================================================
+   These rules ensure a consistent baseline across all browsers and eliminate
+   default spacing/scrollbars that would interfere with full-screen gameplay.
+   ========================================================================== */
+
+/* Remove the default 8px margin that all browsers apply to <body>.
+ * 'overflow: hidden' prevents scrollbars from appearing — essential for a
+ * full-screen game where the Three.js canvas should fill the entire viewport.
+ * The black background matches the deep-space environment and prevents
+ * white flashes before the 3D scene renders. */
 body {
   margin: 0;
   overflow: hidden;
   background-color: #000;
 }
 
-/* Ensure the Three.js canvas fills the screen appropriately */
+/* The Three.js WebGLRenderer creates a <canvas> element at runtime.
+ * By default, <canvas> is an inline element (like <img>), which causes a
+ * mysterious 3-4px gap at the bottom due to baseline text alignment.
+ * Setting 'display: block' converts it to a block element, eliminating
+ * this gap and ensuring the canvas fills its container precisely. */
 canvas {
   display: block;
 }
 
-/* --- 1. OVERLAY & SPLASH SCREEN LAYOUT --- */
-.game-ui-overlay-container, 
+
+/* ==========================================================================
+   2. OVERLAY & SPLASH SCREEN LAYOUT
+   ==========================================================================
+   Both the in-game HUD and the splash screen share the same base layout:
+   full-viewport, absolutely positioned containers with flexbox centering.
+
+   WHY position: absolute?
+   We need these elements to sit ON TOP of the Three.js canvas (which is
+   inside <div id="app">). Using 'position: absolute' with top/left: 0
+   and width/height: 100% creates a full-screen overlay without affecting
+   the normal document flow.
+
+   WHY flexbox centering?
+   'display: flex' with 'align-items: center' and 'justify-content: center'
+   lets us perfectly center content both horizontally AND vertically without
+   needing to know the content's dimensions. This is the modern replacement
+   for the old "position: absolute + transform: translate(-50%, -50%)" hack.
+   ========================================================================== */
+
+.game-ui-overlay-container,
 .game-loading-splash-screen {
     position: absolute;
     top: 0;
@@ -19,14 +79,40 @@ canvas {
     width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;       /* Stack children vertically */
+    align-items: center;          /* Horizontal centering */
+    justify-content: center;      /* Vertical centering */
+
+    /* 'pointer-events: none' is CRITICAL for the in-game HUD overlay.
+     * Without it, this invisible full-screen div would capture ALL mouse
+     * clicks, preventing the player from interacting with the 3D scene
+     * underneath. Individual interactive children (like buttons) can
+     * override this with 'pointer-events: auto'. */
     pointer-events: none;
+
     color: white;
+
+    /* FONT: "Numans" is the clean, geometric sans-serif used for in-game
+     * readouts (score, ammo, boost notifications). The sans-serif fallback
+     * ensures text is still readable if the Google Font fails to load. */
     font-family: 'Numans', sans-serif;
+
     z-index: 10;
 }
+
+
+/* ==========================================================================
+   GOOGLE FONT UTILITY CLASSES
+   ==========================================================================
+   These utility classes mirror the exact CSS that Google Fonts recommends.
+   They can be applied to any HTML element via class="numans-regular" or
+   class="audiowide-regular" for quick font-family overrides.
+
+   WHY define these separately?
+   While we set default fonts on parent containers (Numans on HUD, Audiowide
+   on splash), these utility classes provide a way to override the font on
+   individual elements without editing the container's CSS rule.
+   ========================================================================== */
 
 .numans-regular {
   font-family: "Numans", sans-serif;
@@ -40,16 +126,62 @@ canvas {
   font-style: normal;
 }
 
+
+/* ==========================================================================
+   3. SPLASH/START SCREEN
+   ==========================================================================
+   The splash screen is the first thing a player sees. It uses a layered
+   background technique and glassmorphism to create a cinematic first
+   impression.
+   ========================================================================== */
+
 .game-loading-splash-screen {
+    /* Override the base 'pointer-events: none' from the shared rule above.
+     * The splash screen NEEDS to receive clicks (on the "ENTER THE COSMOS"
+     * button and the "RESET" high-score button). */
     pointer-events: auto;
+
+    /* LAYERED BACKGROUND TECHNIQUE:
+     * CSS allows multiple backgrounds separated by commas, rendered back-to-front.
+     *   Layer 1 (top):    A dark gradient overlay that goes from 40% black at the
+     *                     top to 90% black at the bottom. This ensures text remains
+     *                     readable regardless of the background image content.
+     *   Layer 2 (bottom): The actual splash background image.
+     * If splash_bg.png doesn't load, the gradient alone provides a dark backdrop. */
     background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.9)), url('/splash_bg.png');
-    background-size: cover;
-    background-position: center;
+    background-size: cover;              /* Scale image to cover entire viewport */
+    background-position: center;         /* Center the image if aspect ratios differ */
+
+    /* FONT: "Audiowide" is the bold, futuristic display font used for all
+     * splash screen text (title, subtitle, stats, info panels).
+     * This overrides the parent's "Numans" default. */
     font-family: 'Audiowide', sans-serif;
+
+    /* z-index: 20 ensures the splash screen sits ABOVE the in-game HUD (z: 10)
+     * so it completely covers the game viewport on load. */
     z-index: 20;
+
+    /* SMOOTH FADE TRANSITION:
+     * When Game.js sets style.opacity = '0' to hide the splash screen,
+     * this CSS transition will animate the opacity change over 1.5 seconds
+     * using an ease timing function (starts slow, accelerates, ends slow).
+     * After the transition, Game.js then sets display: none. */
     transition: opacity 1.5s ease;
 }
 
+
+/* GLASSMORPHISM CARD:
+ * The content wrapper uses the "glassmorphism" design trend — a frosted
+ * glass effect achieved by combining:
+ *   1. A nearly-transparent white background (3% opacity)
+ *   2. backdrop-filter: blur() which blurs everything BEHIND this element
+ *   3. A subtle border for edge definition
+ *   4. Complex box shadows for depth
+ *
+ * WHY '-webkit-backdrop-filter'?
+ * Safari requires the -webkit- prefix for backdrop-filter. Without it,
+ * the blur effect won't work in Safari or older iOS browsers. We include
+ * both the prefixed and unprefixed versions for maximum compatibility. */
 .splash-screen-content-wrapper {
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(15px);
@@ -58,9 +190,27 @@ canvas {
     padding: 4rem;
     border-radius: 3rem;
     text-align: center;
+
+    /* LAYERED BOX SHADOW:
+     * Shadow 1: A large, dark outer shadow (80px spread) creates the illusion
+     *           that the card is floating far above the background.
+     * Shadow 2: An inset (inner) white glow at 5% opacity adds a subtle
+     *           "light catching the edge" effect to enhance the glass feel. */
     box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.05);
 }
 
+
+/* GAME TITLE — GRADIENT TEXT EFFECT:
+ * To fill text with a gradient (impossible with regular CSS 'color'),
+ * we use a 3-step technique:
+ *   1. Apply a 'background: linear-gradient(...)' to the element.
+ *   2. Use 'background-clip: text' to clip the gradient to the text shape.
+ *   3. Set '-webkit-text-fill-color: transparent' to make the original text
+ *      color invisible, revealing the gradient behind it.
+ *
+ * The 'filter: drop-shadow()' adds a colored glow AROUND the text shape,
+ * unlike 'text-shadow' which follows the text bounding box. drop-shadow
+ * respects the actual pixel transparency of the clipped gradient text. */
 .splash-screen-title-text {
     font-size: 6rem;
     font-weight: 900;
@@ -70,39 +220,52 @@ canvas {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 20px rgba(255, 0, 255, 0.6));
-    letter-spacing: -2px;
+    letter-spacing: -2px;          /* Tighten letter spacing for a bold, compact look */
 }
 
 .splash-screen-subtitle-text {
     font-size: 1.2rem;
-    letter-spacing: 0.8rem;
-    color: #00ffff;
+    letter-spacing: 0.8rem;        /* Wide spacing creates a cinematic, sci-fi feel */
+    color: #00ffff;                /* Cyan accent color */
     margin-bottom: 3rem;
-    opacity: 0.9;
-    font-weight: 300;
-    text-transform: uppercase;
+    opacity: 0.9;                  /* Slightly dimmed to not compete with the title */
+    font-weight: 300;              /* Light weight contrasts with the bold title */
+    text-transform: uppercase;     /* Forces all characters to uppercase */
 }
 
-/* --- 2. SCORE STATISTICS --- */
+
+/* ==========================================================================
+   4. SCORE STATISTICS (Splash Screen)
+   ==========================================================================
+   Displays "LAST MISSION" and "PERSONAL BEST" scores using flexbox for
+   horizontal alignment. These values are populated by Game.js on load and
+   when returning to the splash screen after game-over.
+   ========================================================================== */
+
 .splash-screen-score-statistics {
     display: flex;
-    gap: 3rem;
+    gap: 3rem;                     /* Horizontal spacing between the two stat items */
     justify-content: center;
     margin: 1rem 0 2rem 0;
     font-weight: bold;
-    letter-spacing: 2px;
+    letter-spacing: 2px;           /* Spacing for readability at small sizes */
 }
 
 .stat-item {
     font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.8);  /* Slightly dimmed white */
 }
 
+/* Score VALUE styling — the numeric parts get highlighted in pink with
+ * a glowing text-shadow to draw the player's eye to the numbers. */
 #persistent-high-score-value, #last-session-score-value {
     color: #ff00ff;
     text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
 }
 
+/* MINI RESET BUTTON:
+ * A small, unobtrusive button next to the high score.
+ * Uses semi-transparent styling to avoid visual clutter. */
 .mini-reset-button {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -112,57 +275,90 @@ canvas {
     margin-left: 10px;
     border-radius: 4px;
     cursor: pointer;
-    vertical-align: middle;
-    transition: all 0.2s ease;
+    vertical-align: middle;        /* Aligns with adjacent inline text */
+    transition: all 0.2s ease;     /* Smooth hover animation for background/color */
 }
 
+/* Hover state turns the button a vivid danger-red to indicate a destructive action. */
 .mini-reset-button:hover {
     background: #ff0066;
     color: white;
     border-color: #ff0066;
 }
 
-/* --- 3. PREMIUM BUTTON STYLES --- */
+
+/* ==========================================================================
+   5. PREMIUM CTA BUTTON
+   ==========================================================================
+   The main "ENTER THE COSMOS" call-to-action button on the splash screen.
+   Uses a gradient background, large border-radius for pill shape, and
+   advanced hover/active animations.
+   ========================================================================== */
+
 .premium-interactive-button {
+    /* Override the parent's 'pointer-events: none' so this button is clickable. */
     pointer-events: auto;
+
+    /* DIAGONAL GRADIENT: A 45-degree gradient from magenta to cyan creates a
+     * vibrant, eye-catching button that uses both brand colors. */
     background: linear-gradient(45deg, #ff00ff, #00ffff);
     border: none;
     padding: 1.25rem 3.5rem;
     color: white;
-    font-family: inherit;
+    font-family: inherit;          /* Inherit "Audiowide" from the splash screen parent */
     font-size: 1.4rem;
     font-weight: 800;
-    border-radius: 60px;
+    border-radius: 60px;           /* Large radius creates a "pill" / capsule shape */
     cursor: pointer;
+
+    /* CUBIC-BEZIER TIMING FUNCTION:
+     * (0.19, 1, 0.22, 1) creates a fast start with an elastic overshoot effect.
+     * The '1' values in the 2nd and 4th positions mean the animation slightly
+     * overshoots the target and then settles back. This makes the hover feel
+     * more responsive and "snappy" than a linear or ease transition. */
     transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+
+    /* BOX SHADOW: A colored shadow creates a "glow" effect beneath the button,
+     * reinforcing the magenta brand color. The 30px spread gives it a soft halo. */
     box-shadow: 0 10px 30px rgba(255, 0, 255, 0.4);
     text-transform: uppercase;
     letter-spacing: 2px;
 }
 
+/* HOVER STATE: The button lifts up (translateY: -5px), scales slightly larger,
+ * and the shadow shifts to cyan and expands, creating a dramatic "floating" effect. */
 .premium-interactive-button:hover {
     transform: translateY(-5px) scale(1.05);
     box-shadow: 0 20px 50px rgba(0, 255, 255, 0.6);
-    filter: brightness(1.1);
+    filter: brightness(1.1);      /* Slight brightness boost for extra pop */
 }
 
+/* ACTIVE STATE (while clicking): The button pushes DOWN (translateY: 2px)
+ * to simulate a physical button press. This pairs with the hover lift to
+ * create a satisfying click animation: hover UP → click DOWN → release UP. */
 .premium-interactive-button:active {
     transform: translateY(2px);
 }
 
-/* --- 3. HELP & INFO GRID --- */
+
+/* ==========================================================================
+   6. HELP & INFO GRID (Splash Screen)
+   ==========================================================================
+   A two-column CSS Grid layout for the "HOW TO PLAY" and "ABOUT" panels.
+   ========================================================================== */
+
 .splash-screen-info-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    grid-template-columns: 1fr 1fr;  /* Two equal-width columns */
+    gap: 2rem;                        /* Spacing between grid cells */
     margin-top: 3rem;
     width: 100%;
-    max-width: 800px;
+    max-width: 800px;                 /* Prevent panels from stretching too wide on 4K screens */
 }
 
 .info-panel-box {
-    background: rgba(255, 255, 255, 0.05);
-    border-top: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);   /* Very subtle white tint */
+    border-top: 2px solid rgba(255, 255, 255, 0.1);  /* Top accent line for visual separation */
     padding: 1.5rem;
     border-radius: 1rem;
     text-align: left;
@@ -170,28 +366,34 @@ canvas {
 
 .info-panel-header {
     font-size: 0.9rem;
-    color: #ff00ff;
-    letter-spacing: 3px;
+    color: #ff00ff;                /* Pink header text for visual hierarchy */
+    letter-spacing: 3px;           /* Wide spacing matches the sci-fi aesthetic */
     margin-bottom: 1rem;
     opacity: 0.8;
 }
 
+/* CONTROLS LIST: Custom styled list (no default bullets) with generous line-height
+ * for readability when listing keyboard shortcuts. */
 .info-panel-list {
-    list-style: none;
-    padding: 0;
+    list-style: none;              /* Remove default bullet points */
+    padding: 0;                    /* Remove default left padding */
     margin: 0;
     font-size: 0.85rem;
-    line-height: 1.8;
+    line-height: 1.8;             /* 180% line height for comfortable reading */
     color: rgba(255, 255, 255, 0.7);
 }
 
+/* KEY CAP STYLING:
+ * These <span> elements are styled to look like physical keyboard keycaps.
+ * The combination of background, padding, border-radius, and a bottom border
+ * creates the 3D "raised button" illusion seen in keyboard documentation. */
 .key-cap-style {
     background: rgba(255, 255, 255, 0.15);
     padding: 2px 6px;
     border-radius: 4px;
     color: white;
     font-weight: bold;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);  /* Creates the "3D depth" effect */
 }
 
 .info-panel-text {
@@ -200,29 +402,52 @@ canvas {
     color: rgba(255, 255, 255, 0.6);
 }
 
+/* Inline text highlights for technology names in the "About" panel. */
 .highlight-text-cyan { color: #00ffff; font-weight: bold; }
 .highlight-text-pink { color: #ff00ff; font-weight: bold; }
 
+
 /* ==========================================================================
-   6. TACTICAL TUNING CONSOLE (DEBUG UI)
+   7. TACTICAL TUNING CONSOLE (Developer Debug Panel)
+   ==========================================================================
+   A fixed-position slide-in panel for real-time weapon parameter adjustment.
+
+   SLIDE ANIMATION TECHNIQUE:
+   The panel starts positioned off-screen (right: -320px) and slides in
+   when the '.active' class is added (right: 0). The CSS transition on
+   the 'right' property handles the animation automatically.
+
+   The cubic-bezier(0.18, 0.89, 0.32, 1.28) timing function creates an
+   elastic "bounce" effect where the panel slightly overshoots its target
+   position and then settles back, creating a satisfying snap-in feel.
+   The '1.28' value in the 4th position is what causes the overshoot
+   (values > 1.0 extend beyond the target).
    ========================================================================== */
+
 .tuning-console-container {
-    position: fixed;
+    position: fixed;               /* 'fixed' positions relative to the VIEWPORT, not the document.
+                                    * Unlike 'absolute', it won't scroll with the page content
+                                    * (though scrolling is disabled in this game anyway). */
     top: 20px;
-    right: -320px; /* Hidden start */
+    right: -320px;                 /* Hidden off-screen to the right. The panel is 280px wide
+                                    * plus 15px padding on each side = ~310px, so -320px ensures
+                                    * it's completely invisible when inactive. */
     width: 280px;
-    background: rgba(10, 10, 20, 0.95);
-    border: 1px solid #00ffff;
-    border-right: none;
-    border-radius: 8px 0 0 8px;
+    background: rgba(10, 10, 20, 0.95);  /* Nearly opaque dark blue-black */
+    border: 1px solid #00ffff;           /* Cyan border matches the game's accent color */
+    border-right: none;                  /* No right border since the panel butts against the viewport edge */
+    border-radius: 8px 0 0 8px;         /* Rounded corners only on the LEFT side (the visible edge) */
     padding: 15px;
-    z-index: 1000;
-    font-family: 'Numans', sans-serif;
+    z-index: 1000;                       /* Above everything except boost notifications */
+    font-family: 'Numans', sans-serif;   /* Clean, readable font for parameter values */
     color: white;
-    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
-    transition: right 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);  /* Shadow on the LEFT side for depth */
+    transition: right 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);  /* Elastic slide animation */
 }
 
+/* When BalanceUI.js calls container.classList.add('active'), this rule
+ * overrides 'right: -320px' with 'right: 0', and the CSS transition
+ * smoothly animates the panel into view. */
 .tuning-console-container.active {
     right: 0;
 }
@@ -234,11 +459,12 @@ canvas {
     letter-spacing: 2px;
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 255, 255, 0.1);  /* Subtle separator line */
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between;  /* Pushes the [T] hint to the right edge */
 }
 
+/* The "[T]" hotkey hint in the console header. */
 .tuning-toggle-hint {
     color: #ff00ff;
     opacity: 0.7;
@@ -249,54 +475,87 @@ canvas {
 }
 
 .tuning-item label {
-    display: block;
+    display: block;                /* Forces the label to take full width */
     font-size: 0.7rem;
     font-weight: 600;
     margin-bottom: 8px;
     opacity: 0.8;
 }
 
+/* The numeric value inside each label (e.g., "SHOT SPEED: 16") is highlighted pink. */
 .tuning-item label span {
     color: #ff00ff;
     font-weight: 800;
 }
 
+/* RANGE INPUT STYLING:
+ * 'accent-color' is a modern CSS property (Chrome 93+, Firefox 92+) that
+ * changes the color of the slider track and thumb to match our brand color.
+ * Before accent-color existed, styling range inputs required complex
+ * vendor-prefixed pseudo-element selectors (::-webkit-slider-thumb, etc). */
 .tuning-item input[type="range"] {
     width: 100%;
     accent-color: #ff00ff;
     cursor: pointer;
 }
 
-/* --- 4. HUD ELEMENTS --- */
+
+/* ==========================================================================
+   8. IN-GAME HUD ELEMENTS
+   ==========================================================================
+   The Heads-Up Display elements that appear during active gameplay.
+   These are positioned absolutely within the .game-ui-overlay-container
+   parent (which covers the full viewport).
+   ========================================================================== */
+
+/* Stats row pinned to the top-left corner of the viewport. */
 .game-current-stats-row {
     position: absolute;
     top: 20px;
     left: 20px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
+    flex-wrap: wrap;               /* Allow stats to wrap to a second line on narrow screens */
+    gap: 30px;                     /* Horizontal spacing between score and ammo */
 }
 
-.game-current-score-display, 
+/* Shared styling for score and ammo displays.
+ * The cyan color and text-shadow create a "holographic HUD" effect. */
+.game-current-score-display,
 .game-current-ammo-display {
     font-size: 1.4rem;
     font-weight: 900;
     color: #00ffff;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-    white-space: nowrap;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);  /* Soft cyan glow behind the text */
+    white-space: nowrap;           /* Prevent line wrapping within a single stat */
 }
 
+
+/* ==========================================================================
+   9. GAME OVER PANEL
+   ==========================================================================
+   The centered notification that appears when the player's ship is destroyed.
+   Styled as a dramatic, red-bordered card with a pulsing neon heading.
+
+   The 'Audiowide' font override gives the GAME OVER text a completely
+   different, more impactful feel compared to the in-game HUD font.
+   ========================================================================== */
+
 .game-over-notification-panel {
-    display: none;
+    display: none;                 /* Hidden by default. Game.js sets display: block on death. */
     text-align: center;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.7);  /* Semi-transparent dark background for readability */
     padding: 3rem;
     border-radius: 2rem;
-    border: 2px solid #ff0066;
-    font-family: 'Audiowide', sans-serif;
+    border: 2px solid #ff0066;    /* Hot pink/red border signals danger */
+    font-family: 'Audiowide', sans-serif;  /* Bold, futuristic font for maximum impact */
+
+    /* MASSIVE COLORED BOX SHADOW:
+     * The 100px spread creates a huge red glow around the entire panel,
+     * simulating a "warning alarm" light effect. */
     box-shadow: 0 0 100px rgba(255, 0, 102, 0.4);
 }
 
+/* The large "GAME OVER" heading uses a CSS neon flash animation. */
 .game-over-status-heading {
     font-size: 5rem;
     color: #ff0066;
@@ -304,7 +563,7 @@ canvas {
     text-transform: uppercase;
     letter-spacing: 5px;
     font-weight: 900;
-    animation: neonFlash 1.5s infinite alternate;
+    animation: neonFlash 1.5s infinite alternate;  /* Continuously pulses the glow intensity */
 }
 
 .game-restart-action-instruction {
@@ -313,42 +572,91 @@ canvas {
     opacity: 0.8;
 }
 
-/* --- 4. ANIMATIONS --- */
+
+/* ==========================================================================
+   10. CSS KEYFRAME ANIMATIONS
+   ==========================================================================
+   @keyframes define named animation sequences that can be referenced by
+   the 'animation' shorthand property. The browser interpolates between
+   the defined keyframe states automatically.
+   ========================================================================== */
+
+/* PULSE GLOW: Used on the splash screen title text.
+ * Smoothly scales the text up 2% and increases brightness by 20% at the
+ * midpoint, creating a gentle "breathing" effect. The 4s duration and
+ * ease-in-out timing make it subtle and non-distracting. */
 @keyframes pulseGlow {
     0% { transform: scale(1); filter: brightness(1); }
     50% { transform: scale(1.02); filter: brightness(1.2); }
     100% { transform: scale(1); filter: brightness(1); }
 }
 
+/* NEON FLASH: Used on the "GAME OVER" heading.
+ * Alternates between a subtle text-shadow and a progressively larger,
+ * brighter glow. The 'infinite alternate' animation direction means it
+ * ping-pongs between the 'from' and 'to' states forever.
+ * Three layered text-shadows at different spreads (20px, 40px, 60px) create
+ * the realistic neon light falloff effect. */
 @keyframes neonFlash {
     from { text-shadow: 0 0 10px #ff0066, 0 0 20px #ff0066; }
     to { text-shadow: 0 0 20px #ff0066, 0 0 40px #ff0066, 0 0 60px #ff0066; }
 }
 
+/* Utility class that applies the pulseGlow animation to any element. */
 .pulsing-text {
     animation: pulseGlow 4s infinite ease-in-out;
 }
 
+
 /* ==========================================================================
-   7. BOOST NOTIFICATIONS
+   11. BOOST NOTIFICATION POPUPS
+   ==========================================================================
+   Floating notifications that appear when the player collects a power-up
+   bonus gem. These are dynamically created DOM elements in Game.js —
+   they are NOT defined in index.html.
+
+   LIFECYCLE:
+   1. Game.js creates a new <div class="boost-notification-popup"> via
+      document.createElement().
+   2. It sets innerHTML with boost type name and level text.
+   3. It positions the div at a semi-random viewport location.
+   4. It appends the div to document.body.
+   5. The CSS animation 'floatUpAndFade' runs automatically once ('forwards').
+   6. After 2 seconds, a setTimeout in Game.js calls notification.remove()
+      to clean up the DOM node.
+
+   'pointer-events: none' ensures these popups never intercept mouse clicks.
    ========================================================================== */
+
 .boost-notification-popup {
-    position: fixed;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 2000;
+    position: fixed;               /* Fixed to viewport, not affected by scrolling */
+    transform: translate(-50%, -50%);  /* Center the element on its positioned point
+                                        * by shifting it back by half its own width/height */
+    pointer-events: none;          /* Click-through: don't block mouse events */
+    z-index: 2000;                 /* Highest z-index: appears above everything */
     text-align: center;
     font-family: 'Numans', sans-serif;
+
+    /* ANIMATION SHORTHAND:
+     * 'floatUpAndFade' — The animation name (defined below).
+     * '2s'             — Duration: the full sequence takes 2 seconds.
+     * cubic-bezier(0.16, 1, 0.3, 1) — "EaseOutExpo" feel: fast start, gentle deceleration.
+     * 'forwards'       — After the animation ends, KEEP the final state (opacity: 0).
+     *                    Without 'forwards', the element would snap back to its
+     *                    initial state (opacity: 0, scale 0.5) after the animation,
+     *                    causing a visible flash before the setTimeout removes it. */
     animation: floatUpAndFade 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Boost type label (e.g., "BULLET CAPACITY UP"). Color is set inline by Game.js. */
 .boost-type {
     font-size: 1.5rem;
     font-weight: 900;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);  /* White glow for readability over any background */
     letter-spacing: 2px;
 }
 
+/* Boost level indicator (e.g., "LEVEL 3" or "LEVEL MAX"). */
 .boost-level {
     font-size: 1.2rem;
     font-weight: 700;
@@ -358,6 +666,16 @@ canvas {
     margin-top: 5px;
 }
 
+/* FLOAT-UP-AND-FADE ANIMATION:
+ * A 4-keyframe sequence that makes the notification:
+ *   0%  — Start invisible and small (scale 0.5) at the positioned point.
+ *   20% — Quickly pop in: fully visible and slightly oversized (scale 1.1).
+ *   80% — Hold visible while floating upward (translate -70%).
+ *   100% — Fade out and shrink (scale 0.8) while continuing to drift up.
+ *
+ * The translate(-50%, ...) in every keyframe maintains the horizontal centering
+ * established by the base transform. Without including -50% in every keyframe,
+ * the animation would reset the translateX and cause the popup to jump sideways. */
 @keyframes floatUpAndFade {
     0% {
         opacity: 0;
