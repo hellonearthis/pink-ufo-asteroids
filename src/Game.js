@@ -93,6 +93,11 @@ export class PrimaryGameLogicController {
     this.gameOverTimeoutRemainingSeconds = 5.0; // Countdown to auto-return
     this.timestampOfLastDischargedProjectile = 0; // For fire rate limiting
 
+    /* MIX DECK STATE:
+     * A utility screen for testing sound sprites. */
+    this.isMixDeckActive = false;
+    this.activeDeckLoops = new Map(); // e.code -> soundId
+
     /* WEAPON PROGRESSION SYSTEM:
      * The player starts with weak weapons and upgrades them by collecting
      * bonus pickups dropped by destroyed asteroids.
@@ -164,11 +169,60 @@ export class PrimaryGameLogicController {
      * NOTE: We use 'keydown' (not the InputManager) because these are
      * one-shot actions (toggle, start), not continuous held-key inputs. */
     window.addEventListener("keydown", (e) => {
+      /* MIX DECK INPUT HANDLER:
+       * When the deck is open, we intercept 26 keys and map them to sprites.
+       * Keys: Q-P (Top), A-L (Mid), Z-M (Bottom) */
+      if (this.isMixDeckActive) {
+        if (e.code === "Escape") {
+          this.exitMixDeckMode();
+          return;
+        }
+
+        const deckMapping = {
+          KeyQ: "Sprite 1", KeyW: "Sprite 2", KeyE: "Sprite 3", KeyR: "Sprite 4", KeyT: "Sprite 5",
+          KeyY: "Sprite 6", KeyU: "Sprite 7", KeyI: "Sprite 8", KeyO: "Sprite 9", KeyP: "Sprite 10",
+          BracketLeft: "Sprite 11", BracketRight: "Sprite 12",
+          KeyA: "Sprite 13", KeyS: "Sprite 14", KeyD: "Sprite 15", KeyF: "Sprite 16", KeyG: "Sprite 17",
+          KeyH: "Sprite 18", KeyJ: "Sprite 19", KeyK: "Sprite 20", KeyL: "Sprite 21",
+          Semicolon: "Sprite 22", Quote: "Sprite 23",
+          KeyZ: "Sprite 24", KeyX: "Sprite 25", KeyC: "Sprite 26", KeyV: "Sprite 27", KeyB: "Sprite 28",
+          KeyN: "Sprite 29", KeyM: "Sprite 30",
+          Comma: "Sprite 31", Period: "Sprite 32", Slash: "Sprite 33"
+        };
+        
+        if (deckMapping[e.code]) {
+          e.preventDefault(); // Prevent browser 'Quick Find' (/) or space scrolling
+          this.processMixDeckInteraction(e.code, e.shiftKey);
+        }
+        return; // ABSOLUTELY block all other inputs while in deck mode.
+      }
+
       if (e.code === "KeyT") {
         this.balanceTuningUI.toggle();
       }
       if (e.code === "Space" && this.isCurrentlyInSplashScreenMode) {
         this.beginActiveMission();
+      }
+
+      /* MUSIC CONTROLS:
+       * 'M' cycles tracks, 'N' toggles play/stop.
+       * '=' increases volume, '-' decreases volume. */
+      if (e.code === "KeyM") {
+        if (e.shiftKey && this.isCurrentlyInSplashScreenMode) {
+          this.beginMixDeckMode();
+          return;
+        }
+        this.soundManager.playNextMusicTrack();
+      }
+
+      if (e.code === "KeyN") {
+        this.soundManager.toggleMusic();
+      }
+      if (e.code === "Equal") {
+        this.soundManager.increaseMusicVolume();
+      }
+      if (e.code === "Minus") {
+        this.soundManager.decreaseMusicVolume();
       }
     });
 
@@ -193,6 +247,12 @@ export class PrimaryGameLogicController {
       .getElementById("reset-high-score-button")
       .addEventListener("click", () => {
         this.wipePersistentHighScoreRecords();
+      });
+
+    document
+      .getElementById("exit-mix-deck-button")
+      .addEventListener("click", () => {
+        this.exitMixDeckMode();
       });
   }
 
@@ -1052,9 +1112,9 @@ export class PrimaryGameLogicController {
     this.isCurrentlyInSplashScreenMode = false;
     document.body.style.cursor = "none";
 
-    /* SOUND: Transition audio from splash ambience to gameplay hum. */
+    /* SOUND: Transition audio from splash ambience. (Engine hum disabled as requested) */
     this.soundManager.stopStartScreenAmbience();
-    this.soundManager.startShipHum();
+    // this.soundManager.startShipHum();
 
     /* Trigger the CSS opacity transition (defined in style.css). */
     document.getElementById("game-loading-splash-screen").style.opacity = "0";
@@ -1116,8 +1176,84 @@ export class PrimaryGameLogicController {
   wipePersistentHighScoreRecords() {
     if (confirm("Are you sure you want to clear your Best Score?")) {
       this.persistentLocalStorageHighScore = 0;
+      this.lastSessionEndingScore = 0; // Reset last score too for consistency
       localStorage.removeItem("pink-ufo-asteroids-high-score");
       this.synchronizeScoreStatisticsUI();
     }
+  }
+
+  /* =========================================================================
+   * MIX DECK TRANSITION METHODS
+   * ========================================================================= */
+
+  beginMixDeckMode() {
+    this.isMixDeckActive = true;
+    document.getElementById("game-loading-splash-screen").style.display = "none";
+    document.getElementById("mix-deck-overlay").style.display = "flex";
+
+    /* Add click listeners to keys if not already done. 
+     * We use a 'once' flag or simply re-attach if performance is fine. */
+    const keys = document.querySelectorAll(".deck-key");
+    keys.forEach((keyEl) => {
+      // Clear old listeners to avoid multiple triggers if re-entering deck
+      keyEl.onclick = (e) => {
+        const keyCode = keyEl.getAttribute("data-key");
+        this.processMixDeckInteraction(keyCode, e.shiftKey);
+      };
+    });
+  }
+
+  /** Central logic for playing Mix Deck sounds from both keyboard and mouse. */
+  processMixDeckInteraction(keyCode, isShift) {
+    const deckMapping = {
+      KeyQ: "Sprite 1", KeyW: "Sprite 2", KeyE: "Sprite 3", KeyR: "Sprite 4", KeyT: "Sprite 5",
+      KeyY: "Sprite 6", KeyU: "Sprite 7", KeyI: "Sprite 8", KeyO: "Sprite 9", KeyP: "Sprite 10",
+      BracketLeft: "Sprite 11", BracketRight: "Sprite 12",
+      KeyA: "Sprite 13", KeyS: "Sprite 14", KeyD: "Sprite 15", KeyF: "Sprite 16", KeyG: "Sprite 17",
+      KeyH: "Sprite 18", KeyJ: "Sprite 19", KeyK: "Sprite 20", KeyL: "Sprite 21",
+      Semicolon: "Sprite 22", Quote: "Sprite 23",
+      KeyZ: "Sprite 24", KeyX: "Sprite 25", KeyC: "Sprite 26", KeyV: "Sprite 27", KeyB: "Sprite 28",
+      KeyN: "Sprite 29", KeyM: "Sprite 30",
+      Comma: "Sprite 31", Period: "Sprite 32", Slash: "Sprite 33"
+    };
+
+    if (deckMapping[keyCode]) {
+      const keyEl = document.querySelector(`.deck-key[data-key="${keyCode}"]`);
+      
+      if (this.activeDeckLoops.has(keyCode)) {
+        const soundId = this.activeDeckLoops.get(keyCode);
+        this.soundManager.stopSpriteInstance(soundId);
+        this.activeDeckLoops.delete(keyCode);
+        if (keyEl) keyEl.classList.remove("looping");
+      } else if (isShift) {
+        const soundId = this.soundManager.playSprite(deckMapping[keyCode], true);
+        this.activeDeckLoops.set(keyCode, soundId);
+        if (keyEl) keyEl.classList.add("looping");
+      } else {
+        this.soundManager.playSprite(deckMapping[keyCode], false);
+      }
+
+      if (keyEl) {
+        keyEl.classList.add("active");
+        setTimeout(() => keyEl.classList.remove("active"), 150);
+      }
+    }
+  }
+
+  exitMixDeckMode() {
+    this.isMixDeckActive = false;
+    
+    /* STOP ALL ACTIVE LOOPS: 
+     * Cleanup when leaving the deck to prevent overlapping audio correctly. */
+    this.activeDeckLoops.forEach((soundId) => {
+      this.soundManager.stopSpriteInstance(soundId);
+    });
+    this.activeDeckLoops.clear();
+
+    /* Clear visual classes in case any were left stuck. */
+    document.querySelectorAll(".deck-key.looping").forEach(el => el.classList.remove("looping"));
+
+    document.getElementById("mix-deck-overlay").style.display = "none";
+    document.getElementById("game-loading-splash-screen").style.display = "flex";
   }
 }

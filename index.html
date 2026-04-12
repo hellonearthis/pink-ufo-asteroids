@@ -120,7 +120,7 @@
         </div>
 
         <!-- SUBTITLE: Uses CSS letter-spacing: 0.8rem for a wide, cinematic spread. -->
-        <h2 class="splash-screen-subtitle-text">ASTEROID DEFENDER</h2>
+        <h2 class="splash-screen-subtitle-text">ASTEROID BLAST</h2>
 
         <!-- PRIMARY CTA BUTTON: Triggers beginActiveMission() in Game.js.
            Two input methods are supported:
@@ -131,7 +131,7 @@
           id="begin-active-mission-button"
           class="premium-interactive-button"
         >
-          ENTER THE COSMOS [SPACE]
+          ENTER THE [ SPACE ]
         </button>
 
         <!-- HELP & INFO PANELS: A CSS Grid with two columns.
@@ -155,17 +155,25 @@
               <li>
                 <span class="key-cap-style">SPACE</span> : DISCHARGE WEAPONS
               </li>
-              <li><span class="key-cap-style">R</span> : INSTANT RESTART</li>
+
+              <li style="margin-top: 1rem">
+                <span class="key-cap-style">R</span> : INSTANT RESTART
+              </li>
+              <li style="margin-top: 1rem">
+                <span class="key-cap-style">M</span> : NEXT TRACK
+              </li>
+              <li><span class="key-cap-style">N</span> : TOGGLE MUSIC</li>
+              <li>
+                <span class="key-cap-style">-</span>
+                <span class="key-cap-style">=</span> : MUSIC VOLUME
+              </li>
             </ul>
           </div>
           <div class="info-panel-box">
             <h3 class="info-panel-header">ABOUT THE MISSION</h3>
             <p class="info-panel-text">
-              A high-fidelity 3D tribute to the golden age of arcade gaming.
-              Built with <span class="highlight-text-cyan">Three.js</span> and
-              <span class="highlight-text-pink">Vite</span> as a
-              tutorial-focused demonstration of clean, modular game logic and
-              cinematic rendering.
+              Blast asteroids and survive as long as you can. Upgrade your ship
+              and unlock new weapons. Compete with friends for the high score.
             </p>
           </div>
         </div>
@@ -271,11 +279,84 @@
        1. Score & Ammo counters (top-left, positioned via CSS absolute).
        2. Game Over panel (centered, shown/hidden via display:block/none).
        ======================================================================= -->
+    <!-- =======================================================================
+       TACTICAL MIX DECK OVERLAY
+       =======================================================================
+       A dedicated soundboard screen triggered by Shift+M on the splash screen.
+       Allows playing 26 different game sounds using the keyboard.
+       ======================================================================= -->
+    <div id="mix-deck-overlay" class="mix-deck-overlay" style="display: none">
+      <div class="mix-deck-content">
+        <h1 class="mix-deck-title pulsing-text">TACTICAL MIX DECK</h1>
+        <div class="mix-deck-grid">
+          <div class="deck-row">
+            <!-- Row 1: Q-P, [] (Sprites 1-12) -->
+            <div class="deck-key" data-key="KeyQ"><span>Q</span><small>S1</small></div>
+            <div class="deck-key" data-key="KeyW"><span>W</span><small>S2</small></div>
+            <div class="deck-key" data-key="KeyE"><span>E</span><small>S3</small></div>
+            <div class="deck-key" data-key="KeyR"><span>R</span><small>S4</small></div>
+            <div class="deck-key" data-key="KeyT"><span>T</span><small>S5</small></div>
+            <div class="deck-key" data-key="KeyY"><span>Y</span><small>S6</small></div>
+            <div class="deck-key" data-key="KeyU"><span>U</span><small>S7</small></div>
+            <div class="deck-key" data-key="KeyI"><span>I</span><small>S8</small></div>
+            <div class="deck-key" data-key="KeyO"><span>O</span><small>S9</small></div>
+            <div class="deck-key" data-key="KeyP"><span>P</span><small>S10</small></div>
+            <div class="deck-key" data-key="BracketLeft"><span>[</span><small>S11</small></div>
+            <div class="deck-key" data-key="BracketRight"><span>]</span><small>S12</small></div>
+          </div>
+          
+          <div class="deck-row" style="padding-left: 20px;">
+            <!-- Row 2: A-L, ;' (Sprites 13-23) -->
+            <div class="deck-key" data-key="KeyA"><span>A</span><small>S13</small></div>
+            <div class="deck-key" data-key="KeyS"><span>S</span><small>S14</small></div>
+            <div class="deck-key" data-key="KeyD"><span>D</span><small>S15</small></div>
+            <div class="deck-key" data-key="KeyF"><span>F</span><small>S16</small></div>
+            <div class="deck-key" data-key="KeyG"><span>G</span><small>S17</small></div>
+            <div class="deck-key" data-key="KeyH"><span>H</span><small>S18</small></div>
+            <div class="deck-key" data-key="KeyJ"><span>J</span><small>S19</small></div>
+            <div class="deck-key" data-key="KeyK"><span>K</span><small>S20</small></div>
+            <div class="deck-key" data-key="KeyL"><span>L</span><small>S21</small></div>
+            <div class="deck-key" data-key="Semicolon"><span>;</span><small>S22</small></div>
+            <div class="deck-key" data-key="Quote"><span>'</span><small>S23</small></div>
+          </div>
+
+          <div class="deck-row" style="padding-left: 40px;">
+            <!-- Row 3: Z-M, ,./ (Sprites 24-33) -->
+            <div class="deck-key" data-key="KeyZ"><span>Z</span><small>S24</small></div>
+            <div class="deck-key" data-key="KeyX"><span>X</span><small>S25</small></div>
+            <div class="deck-key" data-key="KeyC"><span>C</span><small>S26</small></div>
+            <div class="deck-key" data-key="KeyV"><span>V</span><small>S27</small></div>
+            <div class="deck-key" data-key="KeyB"><span>B</span><small>S28</small></div>
+            <div class="deck-key" data-key="KeyN"><span>N</span><small>S29</small></div>
+            <div class="deck-key" data-key="KeyM"><span>M</span><small>S30</small></div>
+            <div class="deck-key" data-key="Comma"><span>,</span><small>S31</small></div>
+            <div class="deck-key" data-key="Period"><span>.</span><small>S32</small></div>
+            <div class="deck-key" data-key="Slash"><span>/</span><small>S33</small></div>
+          </div>
+        </div>
+
+        <!-- MIX DECK INSTRUCTIONS -->
+        <div class="mix-deck-instructions">
+          <p>[KEY] : TRIGGER SAMPLE | [SHIFT] + [KEY] : TOGGLE LOOP</p>
+          <p>Active loops are highlighted with a cyan glow.</p>
+        </div>
+        
+        <button id="exit-mix-deck-button" class="premium-interactive-button exit-deck-btn">
+          EXIT DECK [ESC]
+        </button>
+      </div>
+    </div>
+
     <div
       id="game-heads-up-display-overlay"
       class="game-ui-overlay-container"
       style="display: none"
     >
+      <!-- MUSIC TRACK NOTIFICATION:
+           Shows the currently playing track title. 
+           Controlled by SoundManager.js for auto-fading after 10s. -->
+      <div id="music-track-info" class="music-track-info-overlay"></div>
+
       <div id="game-current-stats-row" class="game-current-stats-row">
         <!-- Score and weapon stats are updated by Game.js via direct DOM manipulation
            (document.getElementById().innerText = ...) for maximum performance.

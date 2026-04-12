@@ -40,30 +40,41 @@ The following table lists all **33 sprites** defined in `GameSound_sprite.json` 
 
 ---
 
-### How to Reassign Sounds
+### Music Controls (In-Game)
 
-To change which sprite plays for an action, update the `SPRITE_MAP` in `src/SoundManager.js`:
+The game features an adaptive background music system. Controls are active during gameplay:
 
-```javascript
-// src/SoundManager.js
-this.SPRITE_MAP = {
-  shotFiredPool: [
-    "Sprite 1", "Sprite 2", "Sprite 4", "Sprite 5", "Sprite 6",
-    "Sprite 12", "Sprite 13", "Sprite 25", "Sprite 26", "Sprite 31",
-  ],
-  shotHit: "Sprite 3",
-  shipHum: "Sprite 7",
-  shipThrust: ["Sprite 17", "Sprite 19", "Sprite 33"],
-  shipRotate: "Sprite 21",
-  gameOver: ["Sprite 9", "Sprite 10", "Sprite 11"],
-  startScreen: "Sprite 16",
-  startScreenAmbience: "Sprite 32",
-  levelCleared: "Sprite 24",
-  bonusPickup: "Sprite 15",
-  bonusCapacity: "Sprite 29",
-  bonusSpeedup: "Sprite 23",
-  asteroidBreak: "Sprite 3",
-  asteroidBreakSmall: "Sprite 27",
-  proximityAlert: "Sprite 8",
-};
-```
+| Key | Action | Description |
+| :--- | :--- | :--- |
+| **M** | **Cycle Track** | Rotates through the 8 available music tracks. |
+| **N** | **Play / Pause** | Toggles music playback. HUD fades when resumed. |
+| **-** | **Volume Down** | Decreases volume by 10%. |
+| **=** | **Volume Up** | Increases volume by 10%. |
+
+---
+
+### Tactical Mix Deck (Soundboard)
+
+The **Tactical Mix Deck** is a specialized tool for testing all 33 sound sprites. Access it by pressing **Shift + M** while on the Splash Screen.
+
+#### Navigation & Interaction:
+- **Keys / Click**: Press a key or click a virtual button to play the sample once.
+- **Shift + [Key/Click]**: Toggles **Looping** for that sample. Active loops are highlighted with a cyan glow.
+- **Esc**: Exits the deck and returns to the main menu.
+
+#### Sequential Key Mapping:
+The deck is mapped sequentially to your keyboard to make referencing sprites easy:
+
+| Row | Keys | Sprites |
+| :--- | :--- | :--- |
+| **Top Row** | `Q` `W` `E` `R` `T` `Y` `U` `I` `O` `P` `[` `]` | **S1** through **S12** |
+| **Middle Row** | `A` `S` `D` `F` `G` `H` `J` `K` `L` `;` `'` | **S13** through **S23** |
+| **Bottom Row** | `Z` `X` `C` `V` `B` `N` `M` `,` `.` `/` | **S24** through **S33** |
+
+---
+
+### Technical Notes
+
+- **Audio Sprite**: All sounds are packed into `GameSounds.mp3` for maximum performance and compatibility.
+- **Instance Management**: The `SoundManager` uses a pool of 64 instances to ensure heavily overlapping sounds in the Mix Deck don't cut each other off.
+- **Loop Resetting**: Every one-shot play explicitly resets the `loop` state to `false`, preventing pooled instances from accidentally repeating one-off samples.

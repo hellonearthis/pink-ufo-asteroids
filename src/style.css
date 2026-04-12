@@ -543,6 +543,25 @@ canvas {
     gap: 30px;                     /* Horizontal spacing between score and ammo */
 }
 
+/* MUSIC TRACK INFO DISPLAY:
+ * Positioned at the top center. 
+ * Small, sleek typography using the 'Numans' font.
+ * Includes a smooth opacity transition for the 10s fade-out. */
+.music-track-info-overlay {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    font-size: 0.85rem;
+    color: #00ffff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    pointer-events: none;
+    z-index: 100;
+}
+
 /* Shared styling for score and ammo displays.
  * The cyan color and text-shadow create a "holographic HUD" effect. */
 /* Shared styling for HUD display elements. */
@@ -605,7 +624,135 @@ canvas {
 
 
 /* ==========================================================================
-   10. CSS KEYFRAME ANIMATIONS
+   10. TACTICAL MIX DECK OVERLAY
+   ========================================================================== */
+.mix-deck-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    font-family: 'Audiowide', sans-serif;
+    color: white;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.mix-deck-content {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3rem;
+    border-radius: 2rem;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    text-align: center;
+    max-width: 1100px;
+}
+
+.mix-deck-title {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    color: #ff00ff;
+    text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+}
+
+.mix-deck-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 3rem;
+    perspective: 1000px;
+    align-items: center;
+}
+
+.deck-row {
+    display: flex;
+    gap: 15px;
+}
+
+.deck-key {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 4px solid rgba(255, 255, 255, 0.3);
+    padding: 15px 5px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s ease;
+    cursor: default;
+}
+
+.deck-key span {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #00ffff;
+}
+
+.deck-key small {
+    font-size: 0.5rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 5px;
+}
+
+/* Key Active State (triggered via JS when physical key pressed) */
+.deck-key.active {
+    transform: translateY(3px);
+    border-bottom-width: 1px;
+    background: #ff00ff;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+    border-color: #ff00ff;
+}
+
+.deck-key.active span {
+    color: white;
+}
+
+/* Looping state for keys */
+.deck-key.looping {
+    border-color: #00ffff;
+    box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.5), 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.deck-key.looping span {
+    color: #ffffff;
+    text-shadow: 0 0 8px #00ffff;
+}
+
+.exit-deck-btn {
+    margin-top: 1rem;
+    padding: 1rem 3rem;
+    font-size: 1.1rem;
+}
+
+.mix-deck-instructions {
+    margin-bottom: 2rem;
+    font-family: 'Numans', sans-serif;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 255, 255, 0.1);
+}
+
+.mix-deck-instructions p {
+    margin: 5px 0;
+}
+
+/* Spacer for keyboard-like layout */
+.deck-key-spacer { grid-column: span 10; height: 10px; }
+.spacer-small { grid-column: span 1; }
+
+
+/* ==========================================================================
+   11. CSS KEYFRAME ANIMATIONS
    ==========================================================================
    @keyframes define named animation sequences that can be referenced by
    the 'animation' shorthand property. The browser interpolates between

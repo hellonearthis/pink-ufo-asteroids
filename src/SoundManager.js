@@ -49,11 +49,19 @@ export class SoundManager {
     this.SPRITE_MAP = {
       /* Randomized Shot Pool (Sprites 1, 2, 4, 5, 6, 12, 13, 25, 26, 31) */
       shotFiredPool: [
-        "Sprite 1", "Sprite 2", "Sprite 4", "Sprite 5", "Sprite 6",
-        "Sprite 12", "Sprite 13", "Sprite 25", "Sprite 26", "Sprite 31",
+        "Sprite 1",
+        "Sprite 2",
+        "Sprite 4",
+        "Sprite 5",
+        "Sprite 6",
+        "Sprite 12",
+        "Sprite 13",
+        "Sprite 25",
+        "Sprite 26",
+        "Sprite 31",
       ],
       shotHit: "Sprite 3", // ~460ms  — User preference (Large Boom)
-      shipHum: "Sprite 7", // ~1834ms — longer, loopable ambient
+      shipHum: "Sprite 17", // ~1834ms — longer, loopable ambient
       shipThrust: ["Sprite 17", "Sprite 19", "Sprite 33"], // ~361ms-2300ms — Randomized Thrust!
       shipRotate: "Sprite 21", // ~924ms   — User preference (turning noise)
       gameOver: ["Sprite 9", "Sprite 10", "Sprite 11"], // ~990ms-1500ms — Randomized Game Over!
@@ -99,39 +107,39 @@ export class SoundManager {
      * The raw data is embedded here to avoid an async fetch on startup.
      * If you update GameSound_sprite.json, update this object too. */
     const rawSprites = {
-      "Sprite 1": [0, 1598],
-      "Sprite 2": [2198, 461],
-      "Sprite 3": [2678, 460],
-      "Sprite 4": [3546, 708],
-      "Sprite 5": [5075, 868],
-      "Sprite 6": [6238, 689],
-      "Sprite 7": [6946, 1834],
-      "Sprite 8": [8902, 1449],
-      "Sprite 9": [11214, 990],
-      "Sprite 10": [13311, 1140],
-      "Sprite 11": [15478, 1454],
-      "Sprite 12": [17415, 877],
-      "Sprite 13": [18489, 1074],
-      "Sprite 14": [20098, 793],
-      "Sprite 15": [22171, 1074],
-      "Sprite 16": [23259, 1468],
-      "Sprite 17": [27128, 2387],
-      "Sprite 18": [29722, 2125],
-      "Sprite 19": [31880, 994],
-      "Sprite 20": [33502, 976],
-      "Sprite 21": [34487, 924],
-      "Sprite 22": [37686, 694],
-      "Sprite 23": [36584, 990],
-      "Sprite 24": [38948, 586],
-      "Sprite 25": [41701, 1332],
-      "Sprite 26": [43493, 427],
-      "Sprite 27": [43924, 422],
-      "Sprite 28": [44764, 539],
-      "Sprite 29": [45852, 1126],
-      "Sprite 30": [46982, 713],
-      "Sprite 31": [50125, 769],
-      "Sprite 32": [52310, 1956],
-      "Sprite 33": [56968, 361],
+      "Sprite 1": [0, 1598], // bang
+      "Sprite 2": [2198, 461], // bang
+      "Sprite 3": [2678, 460], // bang
+      "Sprite 4": [3546, 708], // bang
+      "Sprite 5": [5075, 868], // bang
+      "Sprite 6": [6238, 689], // bang
+      "Sprite 7": [6946, 1834], // ship hum
+      "Sprite 8": [8902, 1449], // dialog
+      "Sprite 9": [11214, 990], // game over
+      "Sprite 10": [13311, 1140], // game over
+      "Sprite 11": [15478, 1454], // game over
+      "Sprite 12": [17415, 877], // bang
+      "Sprite 13": [18489, 1074], // bang
+      "Sprite 14": [20098, 793], // bang
+      "Sprite 15": [22171, 1074], // bang
+      "Sprite 16": [23259, 1468], // bang
+      "Sprite 17": [27128, 2387], // ship thrust
+      "Sprite 18": [29722, 2125], // dialog
+      "Sprite 19": [31880, 994], // ship thrust
+      "Sprite 20": [33502, 976], // dialog
+      "Sprite 21": [34487, 924], // ship rotate
+      "Sprite 22": [37686, 694], // dialog
+      "Sprite 23": [36584, 990], // bonus speedup
+      "Sprite 24": [38948, 586], // level clear
+      "Sprite 25": [41701, 1332], // bang
+      "Sprite 26": [43493, 427], // bang
+      "Sprite 27": [43924, 422], // small explosion
+      "Sprite 28": [44764, 539], // dialog
+      "Sprite 29": [45852, 1126], // bonus capacity
+      "Sprite 30": [46982, 713], // dialog
+      "Sprite 31": [50125, 769], // bang
+      "Sprite 32": [52310, 1956], // start screen ambience
+      "Sprite 33": [56968, 361], // ship thrust
     };
 
     /* Mark looping sprites by adding the 3rd boolean element.
@@ -142,18 +150,18 @@ export class SoundManager {
     ];
     const spriteDefinition = {};
     for (const [name, timing] of Object.entries(rawSprites)) {
-      if (loopingSprites.includes(name)) {
-        spriteDefinition[name] = [timing[0], timing[1], true]; // Loop = true
-      } else {
-        spriteDefinition[name] = timing;
-      }
+      /* We define ALL sprites as one-shots at the library level. 
+       * Looping is enabled dynamically on a per-instance basis in SoundManager methods. 
+       * This is the ONLY reliable way to ensure the Mix Deck respects durations. */
+      spriteDefinition[name] = [timing[0], timing[1]];
     }
 
     /* Create the main Howl instance. */
     this.sound = new Howl({
-      src: ["GameSounds.wav"],
+      src: ["GameSounds.mp3", "GameSounds.wav"],
       sprite: spriteDefinition,
       volume: 0.5,
+      pool: 64, // Increase pool size to allow many overlapping sounds (important for the Mix Deck)
       onloaderror: (id, error) => {
         console.error("Audio load error:", error);
       },
@@ -186,12 +194,12 @@ export class SoundManager {
       bonusSpeedup: 0.6,
       asteroidBreak: 0.4,
       asteroidBreakSmall: 0.5,
-      proximityAlert: 0.8, // Default base volume
+      proximityAlert: 0.4, // Default base volume
     };
 
     /* Proximity Alert State */
     this._lastProximityAlertTime = 0;
-    this._proximityAlertCooldown = 3000; // 3 seconds as requested
+    this._proximityAlertCooldown = 5000; // 5 seconds as requested
 
     /* Track IDs of currently playing looping sounds so we can stop them.
      * Howl.play() returns a numeric ID that can be passed to .stop(id). */
@@ -205,6 +213,58 @@ export class SoundManager {
     /* Track thrust state to avoid re-triggering every frame. */
     this._isThrustPlaying = false;
     this._thrustId = null;
+
+    /* =====================================================================
+     * MUSIC MANAGEMENT (NEW)
+     * =====================================================================
+     * Background tracks are stored as individual files in public/music.
+     * Each track has its own persistence volume setting.
+     * ===================================================================== */
+    this.musicTracks = [
+      {
+        file: "music/audio_383809987989677.mp3",
+        title: "Starlight Echoes",
+        volume: 0.3,
+      },
+      {
+        file: "music/audio_383809987989678.mp3",
+        title: "Neon Nebula",
+        volume: 0.3,
+      },
+      {
+        file: "music/audio_383809987989681.mp3",
+        title: "Cosmic Resonance",
+        volume: 0.3,
+      },
+      {
+        file: "music/audio_383809987989682.mp3",
+        title: "Void Runner",
+        volume: 0.3,
+      },
+      {
+        file: "music/audio_383818459963618.mp3",
+        title: "Plasma Storm",
+        volume: 0.3,
+      },
+      {
+        file: "music/audio_383819505115296.mp3",
+        title: "Event Horizon",
+        volume: 0.3,
+      },
+      {
+        file: "music/audio_383819505115297.mp3",
+        title: "Quantum Drift",
+        volume: 0.3,
+      },
+      {
+        file: "music/audio_383819505115298.mp3",
+        title: "Cyber Sphere",
+        volume: 0.3,
+      },
+    ];
+    this.currentMusicIndex = 0;
+    this.musicHowl = null;
+    this._musicFadeTimeout = null;
   }
 
   /* ==========================================================================
@@ -234,25 +294,42 @@ export class SoundManager {
   playShotFired() {
     const spriteName = this._resolveSprite("shotFiredPool");
     const id = this.sound.play(spriteName);
+    this.sound.loop(false, id); // Prevent issues with pooled instance loop state
     this.sound.volume(this.volumes.shotFired, id);
   }
 
-  /** Play a specific sprite by name (used for sound testing). */
-  playSprite(spriteName) {
+  /**
+   * Play a specific sprite by name (used for sound testing).
+   * @param {string} spriteName - The name of the sprite to play.
+   * @param {boolean} loop - Whether to loop the sound (defaults to false).
+   * @returns {number} - The Howler sound ID.
+   */
+  playSprite(spriteName, loop = false) {
     const id = this.sound.play(spriteName);
     this.sound.volume(0.8, id);
+    this.sound.loop(loop, id); // Always set explicitly to reset pooled state
+    return id;
+  }
+
+  /** Stop a specific sound instance by ID. */
+  stopSpriteInstance(id) {
+    if (id !== null) {
+      this.sound.stop(id);
+    }
   }
 
   /** Play when a bullet hits an asteroid. */
   playShotHit() {
     const spriteName = this._resolveSprite("shotHit");
     const id = this.sound.play(spriteName);
+    this.sound.loop(false, id);
     this.sound.volume(this.volumes.shotHit, id);
   }
 
   /** Play when an asteroid splits or is destroyed. */
   playAsteroidBreak() {
     const id = this.sound.play(this.SPRITE_MAP.asteroidBreak);
+    this.sound.loop(false, id);
     this.sound.volume(this.volumes.asteroidBreak, id);
   }
 
@@ -260,18 +337,21 @@ export class SoundManager {
   playAsteroidBreakSmall() {
     const spriteName = this._resolveSprite("asteroidBreakSmall");
     const id = this.sound.play(spriteName);
+    this.sound.loop(false, id);
     this.sound.volume(this.volumes.asteroidBreakSmall, id);
   }
 
   /** Play when the player collects a general bonus gem. */
   playBonusPickup() {
     const id = this.sound.play(this.SPRITE_MAP.bonusPickup);
+    this.sound.loop(false, id);
     this.sound.volume(this.volumes.bonusPickup, id);
   }
 
   /** Play when a Capacity bonus is collected. */
   playBonusCapacity() {
     const id = this.sound.play(this.SPRITE_MAP.bonusCapacity);
+    this.sound.loop(false, id);
     this.sound.volume(this.volumes.bonusCapacity, id);
   }
 
@@ -427,5 +507,111 @@ export class SoundManager {
   /** Set master volume (0.0 to 1.0). */
   setMasterVolume(level) {
     this.sound.volume(level);
+  }
+
+  /* ==========================================================================
+   * MUSIC CONTROL METHODS (NEW)
+   * ========================================================================== */
+
+  /**
+   * Plays the current music track. Used for initial play, cycle, and resume.
+   * Creates a new Howl instance if it doesn't exist or track changed.
+   */
+  _playMusicTrack() {
+    const track = this.musicTracks[this.currentMusicIndex];
+
+    // If there's already a track playing, stop it.
+    if (this.musicHowl) {
+      this.musicHowl.stop();
+      this.musicHowl.unload(); // Free memory
+    }
+
+    this.musicHowl = new Howl({
+      src: [track.file],
+      html5: true, // Use HTML5 Audio for large files to stream
+      loop: true,
+      volume: track.volume,
+    });
+
+    this.musicHowl.play();
+    this.showTrackName();
+  }
+
+  /** Display the track name UI for 10 seconds. */
+  showTrackName() {
+    const track = this.musicTracks[this.currentMusicIndex];
+    const el = document.getElementById("music-track-info");
+    if (!el) return;
+
+    // Reset visibility and clear existing timeouts
+    if (this._musicFadeTimeout) clearTimeout(this._musicFadeTimeout);
+
+    el.innerText = `Track: ${track.title} [Vol: ${Math.round(track.volume * 100)}%]`;
+    el.style.transition = "none"; // Jump to visible
+    el.style.opacity = "1";
+
+    // Wait 10s then fade
+    this._musicFadeTimeout = setTimeout(() => {
+      el.style.transition = "opacity 2s ease-in-out";
+      el.style.opacity = "0";
+    }, 10000);
+  }
+
+  /** Hide the track name UI instantly. */
+  hideTrackName(instantly = false) {
+    const el = document.getElementById("music-track-info");
+    if (!el) return;
+
+    if (this._musicFadeTimeout) clearTimeout(this._musicFadeTimeout);
+
+    if (instantly) {
+      el.style.transition = "none";
+      el.style.opacity = "0";
+    } else {
+      el.style.transition = "opacity 2s ease-in-out";
+      el.style.opacity = "0";
+    }
+  }
+
+  /** Cycle to the next music track. */
+  playNextMusicTrack() {
+    this.currentMusicIndex =
+      (this.currentMusicIndex + 1) % this.musicTracks.length;
+    this._playMusicTrack();
+  }
+
+  /** Toggle start/stop for music. */
+  toggleMusic() {
+    if (this.musicHowl && this.musicHowl.playing()) {
+      this.musicHowl.pause();
+      this.hideTrackName(true);
+    } else {
+      if (!this.musicHowl) {
+        this._playMusicTrack();
+      } else {
+        this.musicHowl.play();
+        this.showTrackName();
+      }
+    }
+  }
+
+  /** Increase current track volume. */
+  increaseMusicVolume() {
+    const track = this.musicTracks[this.currentMusicIndex];
+    track.volume = Math.min(1.0, track.volume + 0.1);
+    if (this.musicHowl) {
+      this.musicHowl.volume(track.volume);
+    }
+    this.showTrackName(); // Reshow to show volume change
+  }
+
+  /** Decrease current track volume. */
+  decreaseMusicVolume() {
+    const track = this.musicTracks[this.currentMusicIndex];
+    track.volume = Math.max(0.0, track.volume - 0.1);
+    if (this.musicHowl) {
+      this.musicHowl.volume(track.volume);
+    }
+    this.showTrackName(); // Reshow to show volume change
   }
 }
