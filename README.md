@@ -6,6 +6,8 @@ A stylized, three.js-powered remake of the classic Asteroids game, featuring a p
 
 - **Move & Rotate**: Use the **WASD** keys or **Arrow Keys**.
 - **Shoot**: Press the **Spacebar** to fire yellow energy pulses.
+- **In-Game Music**: Press **[M]** to cycle tracks, **[N]** to toggle, and **[-/+]** for volume.
+- **Tactical Mix Deck**: Press **[SHIFT + M]** on the splash screen to open the soundboard.
 - **Tactical Tuning**: Press **[T]** to open the real-time balance console.
 - **Restart**: Press the **R** key on the "Game Over" screen to try again.
 
@@ -32,16 +34,15 @@ If you prefer the command line:
 
 ## 🛠 Features
 
+- **Tactical Mix Deck**: A premium virtual soundboard (press `Shift + M`) allowing you to test all 33 sound sprites with mouse/keyboard, including looping and sequential key mapping.
+- **Adaptive Music System**: Integrated soundtrack management (press `M`/`N`) with real-time HUD notifications and fade-out effects.
+- **Optimized Audio Engine**: High-performance audio sprite system using Howler.js with 64 managed instances, instance pooling, and dynamic loop control.
 - **Tactical Tuning Console**: A real-time balance menu (press `T`) that allows you to live-adjust shot speed, fire rate, and capacity while playing.
-- **Weapon Progression System**: Collect color-coded hexagonal gems to upgrade your spacecraft:
-  - 🔴 **Shots (Capacity)**: Increase the number of pellets you can have on-screen.
-  - 🟡 **Shot Rate**: Reduce the cooldown between shots.
-  - 🟠 **Shot Velocity**: Increase bullet travel speed.
-  - 💗 **Shot Range**: Increase how far your projectiles travel.
+- **Weapon Progression System**: Collect color-coded hexagonal gems to upgrade your spacecraft (Capacity, Rate, Velocity, Range).
 - **Animated UFO**: Features a spinning saucer body, a hovering "bob" animation, and a pulsing sequence of rim lights.
 - **Dynamic Visual Style**: High-contrast "gemstone" pickups and projectiles with pulsing energy outlines.
-- **Realistic Momentum**: Projectiles inherit the ship's current linear velocity at the moment of firing for a more tactical flight feel.
-- **Educational Source Code**: The codebase features extremely verbose variable names and comprehensive 'Deep-Dive' comments explaining core Three.js routines, geometry deformation, and physics logic.
+- **Realistic Momentum**: Projectiles inherit the ship's linear velocity for a more tactical flight feel.
+- **Educational Source Code**: Extremely verbose variable names and comprehensive 'Deep-Dive' comments explaining core logic.
 
 ## 📁 Project Structure
 
@@ -52,9 +53,9 @@ If you prefer the command line:
 - `src/Player.js`: The animated UFO spacecraft implementation and hierarchical group management.
 - `src/Asteroid.js`: Procedurally deformed space rock logic and vertex-normal calculation.
 - `src/Bullet.js`: Projectile physics, momentum inheritance, and dynamic color cycling.
-- `src/Bonus.js`: Collectible gem pickups with hierarchical timer bars.
-- `src/BalanceUI.js`: Implementation of the Tactical Tuning Console and UI synchronization.
+- `src/SoundManager.js`: Centralized audio controller using an optimized MP3 sprite system and adaptive music management.
 - `src/InputManager.js`: Polling-based keyboard input state tracker.
+- `sound_readme.md`: Technical reference for all 33 sound sprites and their specific timings.
 
 ## 📖 Code Tutorial Guide
 
@@ -75,5 +76,8 @@ Every source file is heavily commented as a tutorial-level walkthrough. Here's a
 
 ## 🔊 Sound Design
 
-Thanks to https://tools.dverso.io/audiosprite/ for the audio sprite generation.
-And thanks to [trishacode]https://trishacode.neocities.org/) for the sound effects.
+- **Audio Sprite**: All 33 game sounds are packed into a single optimized `GameSounds.mp3` for maximum performance.
+- **Credits**:
+    - **Engine/Processing**: Powered by [Howler.js](https://howlerjs.com/).
+    - **Sound Sprites**: Generated via [AudioSprite Tools](https://tools.dverso.io/audiosprite/).
+    - **Audio Source**: Sounds by **[trishacode]**(https://trishacode.neocities.org/).

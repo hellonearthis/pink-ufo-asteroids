@@ -107,7 +107,7 @@ export class SoundManager {
      * The raw data is embedded here to avoid an async fetch on startup.
      * If you update GameSound_sprite.json, update this object too. */
     const rawSprites = {
-      "Sprite 1": [100, 1598], // bang
+      "Sprite 1": [400, 1598], // bang
       "Sprite 2": [2198, 461], // bang
       "Sprite 3": [2678, 460], // bang
       "Sprite 4": [3546, 708], // bang
