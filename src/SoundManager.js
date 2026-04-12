@@ -107,7 +107,7 @@ export class SoundManager {
      * The raw data is embedded here to avoid an async fetch on startup.
      * If you update GameSound_sprite.json, update this object too. */
     const rawSprites = {
-      "Sprite 1": [0, 1598], // bang
+      "Sprite 1": [100, 1598], // bang
       "Sprite 2": [2198, 461], // bang
       "Sprite 3": [2678, 460], // bang
       "Sprite 4": [3546, 708], // bang
@@ -150,15 +150,15 @@ export class SoundManager {
     ];
     const spriteDefinition = {};
     for (const [name, timing] of Object.entries(rawSprites)) {
-      /* We define ALL sprites as one-shots at the library level. 
-       * Looping is enabled dynamically on a per-instance basis in SoundManager methods. 
+      /* We define ALL sprites as one-shots at the library level.
+       * Looping is enabled dynamically on a per-instance basis in SoundManager methods.
        * This is the ONLY reliable way to ensure the Mix Deck respects durations. */
       spriteDefinition[name] = [timing[0], timing[1]];
     }
 
     /* Create the main Howl instance. */
     this.sound = new Howl({
-      src: ["GameSounds.mp3", "GameSounds.wav"],
+      src: ["GameSounds.mp3"],
       sprite: spriteDefinition,
       volume: 0.5,
       pool: 64, // Increase pool size to allow many overlapping sounds (important for the Mix Deck)
