@@ -40,6 +40,7 @@ import { KeyboardInputStateTracker } from "./InputManager.js";
 import { BonusPickupElement } from "./Bonus.js";
 import { TacticalBalanceUI } from "./BalanceUI.js";
 import { SoundManager } from "./SoundManager.js";
+import { StepSequencer } from "./Sequencer.js";
 
 export class PrimaryGameLogicController {
   /**
@@ -161,6 +162,10 @@ export class PrimaryGameLogicController {
      * Initialize the developer tuning panel (see BalanceUI.js).
      * We pass 'this' (the game instance) so it can read/write weapon properties. */
     this.balanceTuningUI = new TacticalBalanceUI(this);
+
+    /* STEP SEQUENCER:
+     * Initialize the 8x8 rhythmic engine. */
+    this.stepSequencer = new StepSequencer();
 
     /* HOTKEY LISTENERS:
      * 'T' toggles the tuning console.
@@ -1218,6 +1223,13 @@ export class PrimaryGameLogicController {
     };
 
     if (deckMapping[keyCode]) {
+      /* INTERCEPT: If the sequencer is waiting to remap a row, 
+       * we assign the chosen sprite to that row and skip playback. */
+      if (this.stepSequencer && this.stepSequencer.awaitingRemapRow !== null) {
+        this.stepSequencer.finalizeRemap(deckMapping[keyCode]);
+        return; 
+      }
+
       const keyEl = document.querySelector(`.deck-key[data-key="${keyCode}"]`);
       
       if (this.activeDeckLoops.has(keyCode)) {
@@ -1249,6 +1261,11 @@ export class PrimaryGameLogicController {
       this.soundManager.stopSpriteInstance(soundId);
     });
     this.activeDeckLoops.clear();
+
+    /* STOP SEQUENCER: */
+    if (this.stepSequencer) {
+      this.stepSequencer.stop();
+    }
 
     /* Clear visual classes in case any were left stuck. */
     document.querySelectorAll(".deck-key.looping").forEach(el => el.classList.remove("looping"));

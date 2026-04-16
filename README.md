@@ -7,7 +7,7 @@ A stylized, three.js-powered remake of the classic Asteroids game, featuring a p
 - **Move & Rotate**: Use the **WASD** keys or **Arrow Keys**.
 - **Shoot**: Press the **Spacebar** to fire yellow energy pulses.
 - **In-Game Music**: Press **[M]** to cycle tracks, **[N]** to toggle, and **[-/+]** for volume.
-- **Tactical Mix Deck**: Press **[SHIFT + M]** on the splash screen to open the soundboard.
+- **Tactical Mix Deck & Sequencer**: Press **[SHIFT + M]** on the splash screen to open the soundboard and 8x8 step sequencer.
 - **Tactical Tuning**: Press **[T]** to open the real-time balance console.
 - **Restart**: Press the **R** key on the "Game Over" screen to try again.
 
@@ -34,7 +34,7 @@ If you prefer the command line:
 
 ## 🛠 Features
 
-- **Tactical Mix Deck**: A premium virtual soundboard (press `Shift + M`) allowing you to test all 33 sound sprites with mouse/keyboard, including looping and sequential key mapping.
+- **Tactical Mix Deck & 8x8 Sequencer**: A premium virtual soundboard and rhythmic engine (press `Shift + M`). Features a 33-slot manual soundboard alongside an 8x8 Pulse Sequencer with Tone.js-powered timing, per-row sample remapping, mute controls, and velocity (volume) sensitivity.
 - **Adaptive Music System**: Integrated soundtrack management (press `M`/`N`) with real-time HUD notifications and fade-out effects.
 - **Optimized Audio Engine**: High-performance audio sprite system using Howler.js with 64 managed instances, instance pooling, and dynamic loop control.
 - **Tactical Tuning Console**: A real-time balance menu (press `T`) that allows you to live-adjust shot speed, fire rate, and capacity while playing.
@@ -55,6 +55,7 @@ If you prefer the command line:
 - `src/Bullet.js`: Projectile physics, momentum inheritance, and dynamic color cycling.
 - `src/SoundManager.js`: Centralized audio controller using an optimized MP3 sprite system and adaptive music management.
 - `src/InputManager.js`: Polling-based keyboard input state tracker.
+- `src/Sequencer.js`: The Tone.js-powered 8x8 step sequencer engine with advanced remapping and mute logic.
 - `sound_readme.md`: Technical reference for all 33 sound sprites and their specific timings.
 
 ## 📖 Code Tutorial Guide

@@ -646,16 +646,17 @@ canvas {
 
 .mix-deck-content {
     background: rgba(255, 255, 255, 0.05);
-    padding: 3rem;
+    padding: 1.5rem 2rem;
     border-radius: 2rem;
     border: 1px solid rgba(0, 255, 255, 0.3);
     text-align: center;
-    max-width: 1100px;
+    max-width: 1500px;
+    margin: 1rem;
 }
 
 .mix-deck-title {
-    font-size: 3rem;
-    margin-bottom: 2rem;
+    font-size: 2.2rem;
+    margin-bottom: 1.2rem;
     color: #ff00ff;
     text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
 }
@@ -663,8 +664,8 @@ canvas {
 .mix-deck-grid {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 3rem;
+    gap: 10px;
+    margin-bottom: 1.5rem;
     perspective: 1000px;
     align-items: center;
 }
@@ -678,7 +679,7 @@ canvas {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-bottom: 4px solid rgba(255, 255, 255, 0.3);
-    padding: 15px 5px;
+    padding: 10px 4px;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
@@ -686,10 +687,11 @@ canvas {
     justify-content: center;
     transition: all 0.1s ease;
     cursor: default;
+    min-width: 38px;
 }
 
 .deck-key span {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: bold;
     color: #00ffff;
 }
@@ -749,6 +751,235 @@ canvas {
 /* Spacer for keyboard-like layout */
 .deck-key-spacer { grid-column: span 10; height: 10px; }
 .spacer-small { grid-column: span 1; }
+
+/* ==========================================================================
+   11. STEP SEQUENCER STYLES (NEW)
+   ========================================================================== */
+.deck-and-sequencer-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.sequencer-panel {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 15px;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 0, 255, 0.2);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 0, 255, 0.05);
+    backdrop-filter: blur(5px);
+}
+
+.sequencer-section-title {
+    font-size: 0.9rem;
+    color: #ff00ff;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+    text-transform: uppercase;
+}
+
+.sequencer-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 34px) 42px 42px; /* 8 steps + Sample + Mute */
+    grid-template-rows: repeat(8, 34px);
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.sequencer-cell {
+    width: 34px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.sequencer-cell:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(0, 255, 255, 0.4);
+    transform: scale(1.05);
+}
+
+.sequencer-cell.active {
+    background: linear-gradient(135deg, #ff00ff, #7700ff);
+    border-color: #ff00ff;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.sequencer-cell.playing {
+    border: 2px solid #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), inset 0 0 10px rgba(0, 255, 255, 0.4);
+    z-index: 2;
+}
+
+.sequencer-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+}
+
+.control-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+}
+
+.bpm-control {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.bpm-control label {
+    font-size: 0.8rem;
+    color: #00ffff;
+    letter-spacing: 1px;
+    font-family: 'Numans', sans-serif;
+}
+
+.bpm-control input[type="range"] {
+    width: 100%;
+    accent-color: #ff00ff;
+    height: 6px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.sequencer-action-btn {
+    padding: 10px 20px;
+    font-family: 'Audiowide', sans-serif;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #ff00ff;
+    color: white;
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+    letter-spacing: 1px;
+    box-shadow: 0 4px 10px rgba(255, 0, 255, 0.3);
+}
+
+.sequencer-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 0, 255, 0.5);
+    filter: brightness(1.2);
+}
+
+.sequencer-action-btn:active {
+    transform: translateY(1px);
+}
+
+.sequencer-action-btn.secondary {
+    background: #ff0066;
+    box-shadow: 0 4px 10px rgba(255, 0, 102, 0.3);
+}
+
+.sequencer-action-btn.glass {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #00ffff;
+    box-shadow: none;
+}
+
+.sequencer-action-btn.glass:hover {
+    background: rgba(0, 255, 255, 0.15);
+    border-color: #00ffff;
+}
+
+
+
+/* ADVANCED COLUMN STYLES */
+.sequencer-cell.sample-selector {
+    background: rgba(0, 255, 255, 0.05);
+    border-color: rgba(0, 255, 255, 0.2);
+    font-size: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00ffff;
+}
+
+.sequencer-cell.sample-selector:hover {
+    background: rgba(0, 255, 255, 0.15);
+    border-color: #00ffff;
+}
+
+.sequencer-cell.sample-selector.remap-waiting {
+    animation: remapPulse 1s infinite alternate;
+    background: #00ffff;
+    color: black;
+    border-color: white;
+}
+
+.sequencer-cell.mute-toggle {
+    background: rgba(255, 0, 0, 0.05);
+    border-color: rgba(255, 0, 0, 0.2);
+    color: #ff0000;
+    font-size: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sequencer-cell.mute-toggle:hover {
+    background: rgba(255, 0, 0, 0.15);
+    border-color: #ff4444;
+}
+
+.sequencer-cell.mute-toggle.row-muted {
+    background: #ff0000;
+    color: white;
+    border-color: #ff4444;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+@keyframes remapPulse {
+    from { opacity: 1; box-shadow: 0 0 5px #00ffff; }
+    to { opacity: 0.5; box-shadow: 0 0 20px #00ffff; }
+}
+
+/* CUSTOM TOOLTIP */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #00ffff;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    border-radius: 4px;
+    border: 1px solid #00ffff;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    z-index: 100;
+    font-family: 'Numans', sans-serif;
+}
+
+[data-tooltip]:hover:before {
+    opacity: 1;
+    visibility: visible;
+    bottom: 110%;
+}
 
 
 /* ==========================================================================
@@ -870,5 +1101,33 @@ canvas {
     100% {
         opacity: 0;
         transform: translate(-50%, -100%) scale(0.8);
+    }
+}
+
+/* ==========================================================================
+   12. RESPONSIVE LAYOUT OPTIMIZATION (NEW)
+   ========================================================================== */
+@media (max-width: 1350px) {
+    .deck-and-sequencer-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+    
+    .mix-deck-overlay {
+        overflow-y: auto;
+        justify-content: flex-start;
+        padding: 2rem 0;
+    }
+
+    .mix-deck-content {
+        margin: 0;
+        width: 95%;
+        border-radius: 1rem;
+        padding: 1.5rem 1rem;
+    }
+
+    .mix-deck-title {
+        font-size: 1.8rem;
     }
 }

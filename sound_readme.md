@@ -73,6 +73,27 @@ The deck is mapped sequentially to your keyboard to make referencing sprites eas
 
 ---
 
+### 8x8 Pulse Sequencer
+
+The **Pulse Sequencer** is a rhythmic engine integrated directly into the Mix Deck (Press **Shift + M**). It allows you to create looping patterns using the game's sound sprites.
+
+#### Grid Controls:
+- **Left-Click**: Toggle a step on/off.
+- **Long-Press (500ms)**: Cycle through **Velocity** levels:
+    - **Soft** (Semi-transparent)
+    - **Medium** (Standard)
+    - **Loud** (Brightest pink)
+- **Play / Stop**: Control the rhythmic loop.
+- **BPM Slider**: Adjust speed from 60 to 180 BPM.
+- **Clear**: Wipes the current pattern.
+
+#### Advanced Row Management:
+- **Sample Selector (SMPL)**: 
+    - Click to enter **Remap Mode** (it will pulse cyan and say `KEY?`).
+    - Press any Mix Deck key (or physical key) to assign that sound to the row.
+    - Hover to see current sprite metadata.
+- **Mute Toggle (MUTE)**: Immediately silence a row in the sequence.
+
 ### Technical Notes
 
 - **Audio Sprite**: All sounds are packed into `GameSounds.mp3` for maximum performance and compatibility.
