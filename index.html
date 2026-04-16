@@ -289,8 +289,29 @@
        ======================================================================= -->
     <div id="mix-deck-overlay" class="mix-deck-overlay" style="display: none">
       <div class="mix-deck-content">
-        <h1 class="mix-deck-title pulsing-text">TACTICAL MIX DECK</h1>
+        <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 20px;">
+          <div class="mix-deck-instructions" style="margin: 0; justify-self: start;">
+            <p>[KEY] : TRIGGER SAMPLE | [SHIFT] + [KEY] : TOGGLE LOOP</p>
+            <p style="color: #00ffff; font-size: 0.7rem;">Active loops are highlighted with a cyan glow.</p>
+          </div>
+          <h1 class="mix-deck-title pulsing-text" style="margin: 0; justify-self: center;">TACTICAL MIX DECK</h1>
+          <button
+            id="exit-mix-deck-button"
+            class="premium-interactive-button exit-deck-btn"
+            style="justify-self: end; margin: 0; padding: 0.8rem 1.5rem;"
+          >
+            EXIT DECK [ESC]
+          </button>
+        </div>
         <div class="deck-and-sequencer-wrapper">
+          <!-- IN-GAME FX REMAPPING UI -->
+          <div class="fx-remap-panel">
+            <h3 class="fx-remap-title">IN-GAME FX MAPPINGS [SHIFT-CLICK TO REMAP]</h3>
+            <div class="fx-remap-grid" id="dynamic-fx-remap-grid">
+              <!-- Populated dynamically by Game.js -->
+            </div>
+          </div>
+
           <div class="mix-deck-grid">
             <div class="deck-row">
               <!-- Row 1: Q-P, [] (Sprites 1-12) -->
@@ -402,7 +423,8 @@
                 <span>/</span><small>S33</small>
               </div>
             </div>
-          </div>
+            </div>
+
 
           <div class="sequencer-panel">
             <h2 class="sequencer-section-title">8x8 PULSE SEQUENCER</h2>
@@ -421,23 +443,15 @@
               <div class="control-group">
                 <button id="sequencer-clear-btn" class="sequencer-action-btn secondary">CLEAR</button>
               </div>
+              <div class="control-group" style="margin-top: 10px;">
+                <button id="sequencer-assign-btn" class="sequencer-action-btn" style="background-color: #00ffff; color: black; font-weight: bold; width: 100%;">ASSIGN SEQ TO FX</button>
+              </div>
             </div>
           </div>
         </div>
 
 
-        <!-- MIX DECK INSTRUCTIONS -->
-        <div class="mix-deck-instructions">
-          <p>[KEY] : TRIGGER SAMPLE | [SHIFT] + [KEY] : TOGGLE LOOP</p>
-          <p>Active loops are highlighted with a cyan glow.</p>
-        </div>
 
-        <button
-          id="exit-mix-deck-button"
-          class="premium-interactive-button exit-deck-btn"
-        >
-          EXIT DECK [ESC]
-        </button>
       </div>
     </div>
 

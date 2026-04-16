@@ -167,6 +167,9 @@ export class PrimaryGameLogicController {
      * Initialize the 8x8 rhythmic engine. */
     this.stepSequencer = new StepSequencer();
 
+    /* IN-GAME FX REMAP STATE */
+    this.awaitingFxRemapKey = null;
+
     /* HOTKEY LISTENERS:
      * 'T' toggles the tuning console.
      * 'Space' starts the game from the splash screen.
@@ -259,6 +262,162 @@ export class PrimaryGameLogicController {
       .addEventListener("click", () => {
         this.exitMixDeckMode();
       });
+
+    /* FX REMAPPING BINDINGS 
+     * Now handled dynamically inside refreshFxRemapUI() because the UI is rebuilt.
+     */
+    
+    document.getElementById("sequencer-assign-btn")?.addEventListener("click", () => {
+      if (this.awaitingFxRemapKey) {
+        const seqData = this.stepSequencer.exportSequenceData();
+        const newSound = { type: 'sequence', data: seqData };
+        this._addSoundToFxPool(this.awaitingFxRemapKey, newSound);
+        this.awaitingFxRemapKey = null;
+        this.refreshFxRemapUI();
+      }
+    });
+  }
+
+  _addSoundToFxPool(fxKey, newSound) {
+    let currentMap = this.soundManager.SPRITE_MAP[fxKey];
+    if (Array.isArray(currentMap)) {
+        currentMap.push(newSound);
+    } else if (currentMap) {
+        // Convert existing single string/object to array and append
+        this.soundManager.SPRITE_MAP[fxKey] = [currentMap, newSound];
+    } else {
+        // Empty pool, just assign
+        this.soundManager.SPRITE_MAP[fxKey] = [newSound]; // Always default to array now
+    }
+  }
+
+  _removeSoundFromFxPool(fxKey, index) {
+    let currentMap = this.soundManager.SPRITE_MAP[fxKey];
+    if (Array.isArray(currentMap)) {
+        currentMap.splice(index, 1);
+        if (currentMap.length === 0) {
+            this.soundManager.SPRITE_MAP[fxKey] = null; // empty pool
+        } else if (currentMap.length === 1) {
+            // Optional: simplify back to single element
+            this.soundManager.SPRITE_MAP[fxKey] = currentMap[0];
+        }
+    } else {
+        this.soundManager.SPRITE_MAP[fxKey] = null;
+    }
+    this.refreshFxRemapUI();
+  }
+
+  refreshFxRemapUI() {
+    const grid = document.getElementById("dynamic-fx-remap-grid");
+    if (!grid) return;
+    grid.innerHTML = ""; // Clear existing
+
+    const exposedFx = [
+      { key: "shotFiredPool", label: "Shot Fired" },
+      { key: "shotHit", label: "Asteroid Hit" },
+      { key: "asteroidBreakSmall", label: "Small Asteroid Hit" },
+      { key: "bonusPickup", label: "Bonus Pickup" },
+      { key: "levelCleared", label: "Level Clear" },
+      { key: "gameOver", label: "Game Over" }
+    ];
+
+    exposedFx.forEach(fx => {
+      const card = document.createElement("div");
+      card.className = "fx-remap-card";
+
+      // Header
+      const header = document.createElement("div");
+      header.className = "fx-card-header";
+      header.innerText = fx.label;
+      card.appendChild(header);
+
+      // List of Pool Items
+      const listContainer = document.createElement("div");
+      listContainer.className = "fx-pool-list";
+      
+      const currentMap = this.soundManager.SPRITE_MAP[fx.key];
+      let poolArray = [];
+      if (Array.isArray(currentMap)) {
+          poolArray = currentMap;
+      } else if (currentMap) {
+          poolArray = [currentMap];
+      }
+
+      if (poolArray.length === 0) {
+          const emptyElem = document.createElement("div");
+          emptyElem.className = "fx-pool-item";
+          emptyElem.style.color = "#777";
+          emptyElem.innerText = "(Silent / Empty)";
+          listContainer.appendChild(emptyElem);
+      } else {
+          poolArray.forEach((item, index) => {
+              const itemDiv = document.createElement("div");
+              itemDiv.className = "fx-pool-item";
+              
+              let displayName = "Unknown";
+              if (typeof item === 'string') {
+                  displayName = item; // e.g. "Sprite 1"
+              } else if (item && item.type === 'sequence') {
+                  displayName = "Sequence [8x8]";
+              }
+              
+              const textSpan = document.createElement("span");
+              textSpan.innerText = displayName;
+              
+              const delBtn = document.createElement("button");
+              delBtn.className = "fx-pool-delete";
+              delBtn.innerText = "✕";
+              delBtn.title = "Remove";
+              delBtn.onclick = () => this._removeSoundFromFxPool(fx.key, index);
+
+              const playItemBtn = document.createElement("button");
+              playItemBtn.className = "fx-pool-play-btn";
+              playItemBtn.innerText = "▶";
+              playItemBtn.title = "Preview Sample";
+              playItemBtn.onclick = () => {
+                  if (item && item.type === 'sequence') {
+                      this.soundManager.playSequenceAsSFX(item.data, 1.0);
+                  } else {
+                      this.soundManager.playSprite(item);
+                  }
+              };
+
+              const leftGroup = document.createElement("div");
+              leftGroup.style.display = "flex";
+              leftGroup.style.alignItems = "center";
+              leftGroup.style.gap = "8px";
+              leftGroup.appendChild(playItemBtn);
+              leftGroup.appendChild(textSpan);
+
+              itemDiv.appendChild(leftGroup);
+              itemDiv.appendChild(delBtn);
+              listContainer.appendChild(itemDiv);
+          });
+      }
+      card.appendChild(listContainer);
+
+      // Add Button
+      const addBtn = document.createElement("button");
+      addBtn.className = "fx-pool-add";
+      
+      if (this.awaitingFxRemapKey === fx.key) {
+        addBtn.classList.add("remap-waiting");
+        addBtn.innerText = "WAITING...";
+        addBtn.onclick = () => {
+          this.awaitingFxRemapKey = null; // cancel
+          this.refreshFxRemapUI();
+        };
+      } else {
+        addBtn.innerText = "+ ADD";
+        addBtn.onclick = () => {
+          this.awaitingFxRemapKey = fx.key;
+          this.refreshFxRemapUI();
+        };
+      }
+      card.appendChild(addBtn);
+
+      grid.appendChild(card);
+    });
   }
 
   /* ==========================================================================
@@ -1196,6 +1355,9 @@ export class PrimaryGameLogicController {
     document.getElementById("game-loading-splash-screen").style.display = "none";
     document.getElementById("mix-deck-overlay").style.display = "flex";
 
+    /* Ensure dynamic FX pool UI is rendered */
+    this.refreshFxRemapUI();
+
     /* Add click listeners to keys if not already done. 
      * We use a 'once' flag or simply re-attach if performance is fine. */
     const keys = document.querySelectorAll(".deck-key");
@@ -1223,11 +1385,18 @@ export class PrimaryGameLogicController {
     };
 
     if (deckMapping[keyCode]) {
-      /* INTERCEPT: If the sequencer is waiting to remap a row, 
-       * we assign the chosen sprite to that row and skip playback. */
+      /* INTERCEPT: If the sequencer is waiting to remap a row */
       if (this.stepSequencer && this.stepSequencer.awaitingRemapRow !== null) {
         this.stepSequencer.finalizeRemap(deckMapping[keyCode]);
         return; 
+      }
+
+      /* INTERCEPT: If an FX mapping is in remap mode */
+      if (this.awaitingFxRemapKey !== null) {
+         this._addSoundToFxPool(this.awaitingFxRemapKey, deckMapping[keyCode]);
+         this.awaitingFxRemapKey = null;
+         this.refreshFxRemapUI();
+         return;
       }
 
       const keyEl = document.querySelector(`.deck-key[data-key="${keyCode}"]`);
@@ -1265,7 +1434,13 @@ export class PrimaryGameLogicController {
     /* STOP SEQUENCER: */
     if (this.stepSequencer) {
       this.stepSequencer.stop();
+      this.stepSequencer.awaitingRemapRow = null;
+      this.stepSequencer.refreshAdvancedUI();
     }
+
+    /* CLEAR FX REMAP STATE */
+    this.awaitingFxRemapKey = null;
+    this.refreshFxRemapUI();
 
     /* Clear visual classes in case any were left stuck. */
     document.querySelectorAll(".deck-key.looping").forEach(el => el.classList.remove("looping"));

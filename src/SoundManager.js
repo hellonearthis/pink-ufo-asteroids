@@ -280,6 +280,9 @@ export class SoundManager {
    */
   _resolveSprite(key) {
     const value = this.SPRITE_MAP[key];
+    if (value && value.type === 'sequence') {
+      return value; // Return the whole sequence object
+    }
     if (Array.isArray(value)) {
       return value[Math.floor(Math.random() * value.length)];
     }
@@ -290,12 +293,26 @@ export class SoundManager {
    * ONE-SHOT SOUND METHODS
    * ========================================================================== */
 
+  /** 
+   * Helper to play either a regular sprite/pool or a dynamic sequence.
+   * Modifies existing methods to seamlessly support sequencer mappings.
+   */
+  _playResolved(resolvedValue, categoryVolumeKey, loop = false) {
+    if (resolvedValue && resolvedValue.type === 'sequence') {
+      this.playSequenceAsSFX(resolvedValue.data, this.volumes[categoryVolumeKey]);
+      return null; // Sequences don't return a single ID
+    } else {
+      const id = this.sound.play(resolvedValue);
+      this.sound.loop(loop, id);
+      this.sound.volume(this.volumes[categoryVolumeKey] || 0.5, id);
+      return id;
+    }
+  }
+
   /** Play when the player fires a bullet (Randomly selects from pool). */
   playShotFired() {
-    const spriteName = this._resolveSprite("shotFiredPool");
-    const id = this.sound.play(spriteName);
-    this.sound.loop(false, id); // Prevent issues with pooled instance loop state
-    this.sound.volume(this.volumes.shotFired, id);
+    const resolved = this._resolveSprite("shotFiredPool");
+    this._playResolved(resolved, "shotFired");
   }
 
   /**
@@ -320,52 +337,44 @@ export class SoundManager {
 
   /** Play when a bullet hits an asteroid. */
   playShotHit() {
-    const spriteName = this._resolveSprite("shotHit");
-    const id = this.sound.play(spriteName);
-    this.sound.loop(false, id);
-    this.sound.volume(this.volumes.shotHit, id);
+    const resolved = this._resolveSprite("shotHit");
+    this._playResolved(resolved, "shotHit");
   }
 
   /** Play when an asteroid splits or is destroyed. */
   playAsteroidBreak() {
-    const id = this.sound.play(this.SPRITE_MAP.asteroidBreak);
-    this.sound.loop(false, id);
-    this.sound.volume(this.volumes.asteroidBreak, id);
+    const resolved = this._resolveSprite("asteroidBreak");
+    this._playResolved(resolved, "asteroidBreak");
   }
 
   /** Play when a SMALL asteroid is destroyed (Sprite 27). */
   playAsteroidBreakSmall() {
-    const spriteName = this._resolveSprite("asteroidBreakSmall");
-    const id = this.sound.play(spriteName);
-    this.sound.loop(false, id);
-    this.sound.volume(this.volumes.asteroidBreakSmall, id);
+    const resolved = this._resolveSprite("asteroidBreakSmall");
+    this._playResolved(resolved, "asteroidBreakSmall");
   }
 
   /** Play when the player collects a general bonus gem. */
   playBonusPickup() {
-    const id = this.sound.play(this.SPRITE_MAP.bonusPickup);
-    this.sound.loop(false, id);
-    this.sound.volume(this.volumes.bonusPickup, id);
+    const resolved = this._resolveSprite("bonusPickup");
+    this._playResolved(resolved, "bonusPickup");
   }
 
   /** Play when a Capacity bonus is collected. */
   playBonusCapacity() {
-    const id = this.sound.play(this.SPRITE_MAP.bonusCapacity);
-    this.sound.loop(false, id);
-    this.sound.volume(this.volumes.bonusCapacity, id);
+    const resolved = this._resolveSprite("bonusCapacity");
+    this._playResolved(resolved, "bonusCapacity");
   }
 
   /** Play when a Speedup bonus is collected. */
   playBonusSpeedup() {
-    const id = this.sound.play(this.SPRITE_MAP.bonusSpeedup);
-    this.sound.volume(this.volumes.bonusSpeedup, id);
+    const resolved = this._resolveSprite("bonusSpeedup");
+    this._playResolved(resolved, "bonusSpeedup");
   }
 
   /** Play when a level/wave is cleared ("Well Done" / Sprite 24). */
   playLevelCleared() {
-    const spriteName = this._resolveSprite("levelCleared");
-    const id = this.sound.play(spriteName);
-    this.sound.volume(this.volumes.levelCleared, id);
+    const resolved = this._resolveSprite("levelCleared");
+    this._playResolved(resolved, "levelCleared");
   }
 
   /**
@@ -379,33 +388,82 @@ export class SoundManager {
       return;
     }
 
-    const spriteName = this._resolveSprite("proximityAlert");
-    const id = this.sound.play(spriteName);
-
+    const resolved = this._resolveSprite("proximityAlert");
+    
     /* Dynamic Volume: Large (3) = 0.8, Medium (2) = 0.55, Small (1) = 0.3 */
     const volumeMultiplier = 0.3 + (hazardSizeCategory - 1) * 0.25;
     const finalVolume = this.volumes.proximityAlert * volumeMultiplier;
 
-    this.sound.volume(finalVolume, id);
+    const id = this._playResolved(resolved, "proximityAlert");
+    if (id !== null) {
+        this.sound.volume(finalVolume, id);
+    }
+    
     this._lastProximityAlertTime = now;
   }
 
   /** Play the game over sound. */
   playGameOver() {
-    const spriteName = this._resolveSprite("gameOver");
-    const id = this.sound.play(spriteName);
-    this.sound.volume(this.volumes.gameOver, id);
+    const resolved = this._resolveSprite("gameOver");
+    const id = this._playResolved(resolved, "gameOver");
 
-    /* When the game-over sound ends, start the start screen ambience. */
-    this.sound.once(
-      "end",
-      (soundId) => {
-        if (soundId === id) {
-          this.startStartScreenAmbience();
+    if (resolved && resolved.type === 'sequence') {
+      // Sequence timing: 8 steps of 8th notes = 4 beats
+      const bpm = parseFloat(resolved.data.bpm) || 120;
+      const durationMs = (60 / bpm) * 1000 * 4; 
+      setTimeout(() => this.startStartScreenAmbience(), durationMs);
+    } else if (id !== null) {
+      /* When the game-over sound ends, start the start screen ambience. */
+      this.sound.once("end", (soundId) => {
+          if (soundId === id) {
+            this.startStartScreenAmbience();
+          }
+        }, id);
+    }
+  }
+
+  /* ==========================================================================
+   * SEQUENCE SFX METHOD (NEW)
+   * ========================================================================== */
+
+  /**
+   * Plays an 8x8 sequence captured from the sequencer as a one-shot sound effect.
+   * Uses setTimeout to schedule playing sprites overlappingly in the Howler pool.
+   * 
+   * @param {Object} sequenceData - { grid, rowSamples, bpm, mutes }
+   * @param {number} baseVolume - Base volume scale for the effect
+   */
+  playSequenceAsSFX(sequenceData, baseVolume = 1.0) {
+    if (!sequenceData || !sequenceData.grid) return;
+
+    const bpm = parseFloat(sequenceData.bpm) || 120;
+    // 8th notes: 1 beat = 60/BPM seconds. 1 beat = 2 8th notes.
+    const stepDurationMs = (60 / bpm) * 1000 / 2;
+    
+    console.log(`[SoundManager] Playing Sequence SFX: ${bpm} BPM, step: ${stepDurationMs}ms`);
+
+    for (let step = 0; step < sequenceData.grid[0].length; step++) {
+      const delay = step * stepDurationMs;
+
+      setTimeout(() => {
+        for (let r = 0; r < sequenceData.grid.length; r++) {
+          if (sequenceData.mutes && sequenceData.mutes[r]) continue;
+
+          const velocity = sequenceData.grid[r][step];
+          if (velocity > 0) {
+            const spriteName = sequenceData.rowSamples[r];
+            if (this.sound && this.sound._sprite && this.sound._sprite[spriteName]) { 
+              const id = this.sound.play(spriteName);
+              this.sound.loop(false, id); // Ensure one-shot
+              
+              // Scale volume by velocity AND base volume of the effect category
+              const finalVolume = velocity * baseVolume;
+              this.sound.volume(finalVolume, id);
+            }
+          }
         }
-      },
-      id,
-    );
+      }, delay);
+    }
   }
 
   /* ==========================================================================

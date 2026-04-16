@@ -34,7 +34,11 @@ If you prefer the command line:
 
 ## 🛠 Features
 
-- **Tactical Mix Deck & 8x8 Sequencer**: A premium virtual soundboard and rhythmic engine (press `Shift + M`). Features a 33-slot manual soundboard alongside an 8x8 Pulse Sequencer with Tone.js-powered timing, per-row sample remapping, mute controls, and velocity (volume) sensitivity.
+- **Tactical Mix Deck (Advanced Sampler)**: A premium 3-part virtual studio console (press `Shift + M`).
+    - **Left Column: Dynamic FX Remap**: A live matrix for reassigning in-game sound effects (Shot Fired, Asteroid Hit, etc.). Supports multi-sample pooling and **Custom Sequence Assignment**.
+    - **Center Column: Sampler Deck**: A 33-slot physical-style keyboard board for live triggering and loop toggling (`Shift + Key`).
+    - **Right Column: 8x8 Pulse Sequencer**: A rhythmic engine powered by Tone.js with velocity sensitivity, per-row sample remapping, and dedicated mute controls.
+- **Dynamic FX Design**: Create a rhythm in the sequencer and assign it directly to a gameplay event. Want your "Shot Fired" to be a custom 8-step rhythmic burst? Just click **ASSIGN SEQ TO FX**.
 - **Adaptive Music System**: Integrated soundtrack management (press `M`/`N`) with real-time HUD notifications and fade-out effects.
 - **Optimized Audio Engine**: High-performance audio sprite system using Howler.js with 64 managed instances, instance pooling, and dynamic loop control.
 - **Tactical Tuning Console**: A real-time balance menu (press `T`) that allows you to live-adjust shot speed, fire rate, and capacity while playing.

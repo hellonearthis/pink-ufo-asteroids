@@ -646,17 +646,18 @@ canvas {
 
 .mix-deck-content {
     background: rgba(255, 255, 255, 0.05);
-    padding: 1.5rem 2rem;
-    border-radius: 2rem;
+    padding: 1rem 1.5rem;
+    border-radius: 1.5rem;
     border: 1px solid rgba(0, 255, 255, 0.3);
     text-align: center;
-    max-width: 1500px;
+    max-width: 1920px;
     margin: 1rem;
+    width: 95vw;
 }
 
 .mix-deck-title {
-    font-size: 2.2rem;
-    margin-bottom: 1.2rem;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
     color: #ff00ff;
     text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
 }
@@ -679,15 +680,16 @@ canvas {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-bottom: 4px solid rgba(255, 255, 255, 0.3);
-    padding: 10px 4px;
-    border-radius: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
     transition: all 0.1s ease;
     cursor: default;
-    min-width: 38px;
+    min-width: 36px;
+    box-sizing: border-box;
 }
 
 .deck-key span {
@@ -733,19 +735,19 @@ canvas {
 }
 
 .mix-deck-instructions {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     font-family: 'Numans', sans-serif;
     color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     letter-spacing: 1px;
     background: rgba(0, 0, 0, 0.3);
-    padding: 1rem 2rem;
-    border-radius: 10px;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
     border: 1px solid rgba(0, 255, 255, 0.1);
 }
 
 .mix-deck-instructions p {
-    margin: 5px 0;
+    margin: 3px 0;
 }
 
 /* Spacer for keyboard-like layout */
@@ -765,17 +767,17 @@ canvas {
 
 .sequencer-panel {
     background: rgba(0, 0, 0, 0.4);
-    padding: 15px;
-    border-radius: 1.5rem;
+    padding: 12px;
+    border-radius: 1rem;
     border: 1px solid rgba(255, 0, 255, 0.2);
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 0, 255, 0.05);
     backdrop-filter: blur(5px);
 }
 
 .sequencer-section-title {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #ff00ff;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     letter-spacing: 2px;
     text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
     text-transform: uppercase;
@@ -1130,4 +1132,139 @@ canvas {
     .mix-deck-title {
         font-size: 1.8rem;
     }
+}
+
+/* ==========================================================================
+   13. FX REMAPPING PANEL (NEW CARDS)
+   ========================================================================== */
+.fx-remap-panel {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 12px;
+    border-radius: 1rem;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    min-width: 650px;
+    max-width: 750px;
+}
+
+.fx-remap-title {
+    font-size: 0.85rem;
+    color: #00ffff;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.fx-remap-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 5px;
+    align-items: flex-start;
+}
+
+/* Custom scrollbar for the grid */
+.fx-remap-grid::-webkit-scrollbar {
+    width: 6px;
+}
+.fx-remap-grid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+.fx-remap-grid::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.3);
+    border-radius: 4px;
+}
+.fx-remap-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 255, 0.6);
+}
+
+.fx-remap-card {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fx-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #fff;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 5px;
+}
+
+.fx-pool-play-btn {
+    background: none;
+    border: none;
+    color: #00ffff;
+    cursor: pointer;
+    font-size: 0.8rem;
+    line-height: 1;
+    padding: 0 4px;
+    transition: all 0.2s ease;
+}
+.fx-pool-play-btn:hover { color: #fff; transform: scale(1.2); text-shadow: 0 0 5px #00ffff; }
+
+.fx-pool-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.fx-pool-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #ccc;
+}
+
+.fx-pool-delete {
+    background: none;
+    border: none;
+    color: rgba(255, 0, 0, 0.6);
+    cursor: pointer;
+    font-weight: bold;
+}
+.fx-pool-delete:hover { color: #ff0000; }
+
+.fx-pool-add {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px dashed rgba(0, 255, 255, 0.3);
+    color: #00ffff;
+    padding: 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-family: inherit;
+}
+.fx-pool-add:hover {
+    background: rgba(0, 255, 255, 0.2);
+}
+
+.fx-pool-add.remap-waiting {
+    animation: remapPulse 1s infinite alternate;
+    background: #00ffff;
+    color: black;
+    border-style: solid;
+    font-weight: bold;
 }
